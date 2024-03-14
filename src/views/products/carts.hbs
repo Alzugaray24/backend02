@@ -1,0 +1,89 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="/">Game Oversize</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            aria-current="page"
+            href="/productos"
+          >Productos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/carritos">Carrito</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/agregar-productos">Agregar Producto</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input
+          class="form-control me-2"
+          type="search"
+          placeholder="Buscar"
+          aria-label="Search"
+        />
+        <button class="btn btn-outline-success" type="submit">Buscar</button>
+      </form>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            class="btn btn-outline-success"
+            href="/users/profile"
+          >Mi Perfil</a>
+        </li>
+        <li class="nav-item">
+          <form id="logoutForm" action="/users/logout" method="POST">
+            <button type="submit" class="btn btn-outline-danger">Logout</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Carrito de Compras</h2>
+    <div class="row">
+        {{#each carritos}}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Productos en el carrito:</h5>
+                    <ul class="list-group list-group-flush">
+                        {{#each this.productos}}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{this.product.title}} - Cantidad: {{this.quantity}}</span>
+                            <button class="btn btn-danger btn-remove-from-cart" data-cart-id="{{../_id}}" data-product-id="{{this.product._id}}">Eliminar</button>
+                        </li>
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>
+
+
+<footer class="footer mt-auto py-3 bg-dark text-white fixed-bottom">
+  <div class="container text-center">
+    <span>© 2024 Game Oversize</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="/js/deleteCart.js"></script>
