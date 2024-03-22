@@ -2,11 +2,11 @@ import { productService } from "../services/service.js";
 
 export const getProductController = async (req, res) => {
   try {
-    const productos = await productService.getAll();
-    req.logger.info("Productos obtenidos con éxito:", productos);
-    res.json(productos);
+    const products = await productService.getAll();
+    req.logger.info(`[${new Date().toLocaleString()}] [GET] ${req.originalUrl} - Productos obtenidos con éxito:`, products);
+    res.json(products);
   } catch (error) {
-    req.logger.error("Error al obtener los productos:", error);
+    req.logger.error(`[${new Date().toLocaleString()}] [GET] ${req.originalUrl} - Error al obtener los productos:`, error);
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -14,7 +14,7 @@ export const getProductController = async (req, res) => {
 export const postProductController = async (req, res) => {
   try {
     const { title, description, price, thumbnail, code, stock } = req.body;
-    const producto = {
+    const product = {
       title,
       description,
       price,
@@ -22,11 +22,11 @@ export const postProductController = async (req, res) => {
       code,
       stock,
     };
-    await productService.save(producto);
-    req.logger.info("Producto creado con éxito");
+    await productService.save(product);
+    req.logger.info(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Producto creado con éxito`);
     res.json("Producto creado con éxito");
   } catch (error) {
-    req.logger.error("Error al crear el producto:", error);
+    req.logger.error(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Error al crear el producto:`, error);
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -34,31 +34,28 @@ export const postProductController = async (req, res) => {
 export const putProductController = async (req, res) => {
   try {
     const { id } = req.params;
-    const nuevoProd = req.body;
+    const newProduct = req.body;
 
-    await productService.update(id, nuevoProd);
+    await productService.update(id, newProduct);
 
-    req.logger.info("Producto actualizado con éxito");
+    req.logger.info(`[${new Date().toLocaleString()}] [PUT] ${req.originalUrl} - Producto actualizado con éxito`);
     res.json("Producto actualizado con éxito");
   } catch (error) {
-    req.logger.error("Error al actualizar el producto:", error);
+    req.logger.error(`[${new Date().toLocaleString()}] [PUT] ${req.originalUrl} - Error al actualizar el producto:`, error);
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const deleteProductController = async (req, res) => {
   try {
-    const { id } = req.params; // Obtener el ID del producto a eliminar
+    const { id } = req.params;
 
-    // Lógica para eliminar el producto utilizando el servicio de productos
     await productService.delete(id);
 
-    // Respuesta exitosa en formato JSON
-    req.logger.info("Producto eliminado exitosamente");
+    req.logger.info(`[${new Date().toLocaleString()}] [DELETE] ${req.originalUrl} - Producto eliminado exitosamente`);
     res.json({ message: "Producto eliminado exitosamente" });
   } catch (error) {
-    // Manejo de errores: si hay algún error, devolver un código de estado 500 y un mensaje de error
-    req.logger.error("Error al eliminar el producto:", error);
+    req.logger.error(`[${new Date().toLocaleString()}] [DELETE] ${req.originalUrl} - Error al eliminar el producto:`, error);
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };

@@ -38,7 +38,7 @@ export default class CartServiceMongo {
   };
 
   findById = async (id) => {
-    const result = await cartModel.findOne({ id: id });
+    const result = await cartModel.findOne({ _id: id });
     return result;
   };
 
@@ -51,8 +51,8 @@ export default class CartServiceMongo {
   };
 
   delete = async (id) => {
-    console.log(id);
     const result = await cartModel.deleteOne({ _id: id });
     return result;
   };
 }
+

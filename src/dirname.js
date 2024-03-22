@@ -49,8 +49,6 @@ export const authToken = (req, res, next) => {
   // The JWT token is saved in the authorization headers.
   const authHeader = req.headers.authorization;
 
-  console.log("Hola mudno");
-  console.log(authHeader);
   if (!authHeader) {
     return res
       .status(401)
@@ -99,5 +97,26 @@ export const authorization = (role) => {
     next();
   };
 };
+
+// Función para generar un código de ticket único
+export function generateTicketCode() {
+  // Generar un código de ticket único utilizando un timestamp y algún valor aleatorio
+  const timestamp = Date.now().toString(36); // Convertir el timestamp a una cadena de caracteres en base 36
+  const randomValue = Math.random().toString(36).substr(2, 5); // Generar un valor aleatorio y tomar solo los primeros 5 caracteres
+  return timestamp + randomValue; // Concatenar el timestamp y el valor aleatorio para obtener el código del ticket
+}
+
+// Función para calcular el total de la compra
+export function calculateTotalAmount(products) {
+  // Inicializar el total en 0
+  let totalAmount = 0;
+
+  // Iterar sobre cada producto y sumar el precio por la cantidad al total
+  for (const item of products) {
+    totalAmount += item.price * item.quantity; // Suponiendo que cada producto tenga un precio y una cantidad
+  }
+
+  return totalAmount;
+}
 
 export default __dirname;

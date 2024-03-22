@@ -10,11 +10,8 @@ import passport from "passport";
 
 export default class UsersExtendRouter extends CustomRouter {
   init() {
-    /*====================================================
-                    EJEMPLO de como se conecta con el CustomRouter
-                    --> this.verboHTTP(path, policies, ...callbacks);                   
-        =====================================================*/
 
+    // Define tus rutas y middlewares
     this.router.get(
       "/github",
       passport.authenticate("github", { scope: ["user:email"] }),
@@ -42,7 +39,7 @@ export default class UsersExtendRouter extends CustomRouter {
       res.sendSuccess(req.user);
     });
 
-    this.post("/login", ["PUBLIC"] , loginController);
+    this.post("/login", ["PUBLIC"], loginController);
 
     this.post("/register", ["PUBLIC"], registerUserController);
 

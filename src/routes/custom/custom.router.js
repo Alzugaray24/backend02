@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { PRIVATE_KEY } from "../../dirname.js"
+import errorHandler from "../../services/middlewares/errorHandler.js";
 
 
 export default class CustomRouter {
@@ -12,7 +13,11 @@ export default class CustomRouter {
     getRouter() {
         return this.router;
     };
-    init() { }; //Esta inicialilzacion se usa para las clases heredadas.
+    init() { 
+
+        this.router.use(errorHandler);
+
+    }; //Esta inicialilzacion se usa para las clases heredadas.
 
     get(path, policies, ...callbacks) {
         this.router.get(
@@ -53,12 +58,8 @@ export default class CustomRouter {
         //Validar si tiene acceso publico:
         if (policies[0] === "PUBLIC") return next();
 
-        console.log("desde policies");
-
         //El JWT token se guarda en los headers de autorización.
         const authHeader = req.headers.authorization;
-
-        console.log(authHeader);
 
         if (!authHeader) {
             return res.status(401).send({ error: "User not authenticated or missing token." });
@@ -78,7 +79,7 @@ export default class CustomRouter {
 
             // si el user.role se encuentra dentro de policies, podes ingresar
             req.user = user;
-            console.log(req.user);
+
             next()
         })
     }

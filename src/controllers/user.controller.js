@@ -1,33 +1,91 @@
 import { userService } from "../services/service.js";
 import { generateJWToken } from "../dirname.js";
 import { createHash, isValidPassword } from "../dirname.js";
+import UsersDTO from "../services/dto/users.dto.js";
+import EErrors from "../services/errors-enum.js";
+import { generateUserErrorInfo } from "../services/messages/user-creation-error.message.js";
+import CustomError from "../services/CustomError.js";
+
 
 export const getAllUsersController = async (req, res) => {
   try {
     const users = await userService.getAll();
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Usuarios obtenidos con éxito:`,
+      users
+    );
     res.json(users);
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al obtener los usuarios: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Error al obtener los usuarios:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const registerUserController = async (req, res) => {
+  const { first_name, last_name, email, age, password } = req.body;
+
+  // Verificar que los campos requeridos no estén vacíos
+  if (!first_name || !last_name || !email || !age || !password) {
+    throw CustomError.createError({
+      name: "User Create Error",
+      cause: generateUserErrorInfo({ first_name, last_name, age, email }),
+      message: "Error tratando de crear al usuario",
+      code: EErrors.INVALID_TYPES_ERROR
+    })
+  }
+
+  // Verificar si el email es válido
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    req.logger.error("[POST] /api/extend/users/register - Formato de correo electrónico inválido.");
+    return res.status(400).json({ error: "Formato de correo electrónico inválido." });
+  }
+
+  // Verificar si la edad es un número válido
+  if (isNaN(age) || age < 0 || age > 150) {
+    req.logger.error("[POST] /api/extend/users/register - Edad inválida.");
+    return res.status(400).json({ error: "La edad debe ser un número válido." });
+  }
+
+  // Hash de la contraseña
+  const hashedPassword = createHash(password);
+
+  // Guardar el usuario
   try {
-    const userData = req.body;
+    const newUser = await userService.save({
+      first_name,
+      last_name,
+      email,
+      age,
+      password: hashedPassword,
+    });
 
-    const hashedPassword = createHash(userData.password);
-    userData.password = hashedPassword;
-
-    const newUser = await userService.save(userData);
-    req.logger.info(`${req.method} en ${req.url} - Usuario registrado con éxito: ${newUser} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
-    res.status(201).json({
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Usuario registrado con éxito:`,
+      newUser
+    );
+    return res.status(201).json({
       status: "Usuario creado con éxito",
       usuario: newUser,
     });
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al registrar al usuario: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
-    res.status(500).json({ error: "Error interno del servidor." });
+    // Si ocurre algún error durante la ejecución de userService.save()
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error al registrar al usuario:`,
+      error
+    );
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
@@ -37,10 +95,19 @@ export const updateUserController = async (req, res) => {
     const { id } = req.params;
     const newData = req.body;
     await userService.update(id, newData);
-    req.logger.info(`${req.method} en ${req.url} - Usuario actualizado con éxito - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [PUT] ${
+        req.originalUrl
+      } - Usuario actualizado con éxito`
+    );
     res.json("Usuario actualizado con éxito");
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al actualizar el usuario: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [PUT] ${
+        req.originalUrl
+      } - Error al actualizar el usuario:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -49,10 +116,19 @@ export const deleteUserController = async (req, res) => {
   try {
     const { id } = req.params;
     await userService.delete(id);
-    req.logger.info(`${req.method} en ${req.url} - Usuario eliminado con éxito - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [DELETE] ${
+        req.originalUrl
+      } - Usuario eliminado con éxito`
+    );
     res.json("Usuario eliminado con éxito");
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al eliminar el usuario: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [DELETE] ${
+        req.originalUrl
+      } - Error al eliminar el usuario:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -76,13 +152,22 @@ export const loginController = async (req, res) => {
     }
 
     const token = generateJWToken(user);
-    req.logger.info(`${req.method} en ${req.url} - Sesión iniciada - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Sesión iniciada`
+    );
     return res.status(200).json({
       status: "Sesión iniciada",
       token: token,
     });
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al iniciar sesión: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error al iniciar sesión:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -90,29 +175,51 @@ export const loginController = async (req, res) => {
 export const logoutController = async (req, res) => {
   try {
     res.clearCookie("jwtCookieToken");
-    req.logger.info(`${req.method} en ${req.url} - Sesión cerrada con éxito - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Sesión cerrada con éxito`
+    );
     res.json({
       status: "Sesión cerrada con éxito",
     });
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al cerrar sesión: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error al cerrar sesión:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const profileController = async (req, res) => {
   try {
-    req.logger.info(`${req.method} en ${req.url} - Obteniendo perfil del usuario - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
-    const user = req.user;
-
-    req.logger.info(`${req.method} en ${req.url} - Perfil del usuario: ${user} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Obteniendo perfil del usuario`
+    );
+    const user = new UsersDTO(req.user);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Perfil del usuario:`,
+      user
+    );
 
     if (!user) {
       return res.status(401).json({ error: "Usuario no autenticado" });
     }
     return res.json({ user });
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error al obtener el perfil del usuario: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Error al obtener el perfil del usuario:`,
+      error
+    );
     return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
@@ -127,13 +234,23 @@ export const githubCallbackController = async (req, res) => {
       role: user.role,
     };
     const access_token = generateJWToken(tokenUser);
-    req.logger.info(`${req.method} en ${req.url} - Token generado: ${access_token} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Token generado:`,
+      access_token
+    );
     res.cookie("jwtCookieToken", access_token, {
       maxAge: 60000,
       httpOnly: true,
     });
   } catch (error) {
-    req.logger.error(`${req.method} en ${req.url} - Error en la autenticación de GitHub: ${error} - at ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error en la autenticación de GitHub:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };

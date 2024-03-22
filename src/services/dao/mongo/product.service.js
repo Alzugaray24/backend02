@@ -55,13 +55,17 @@ export default class ProductServiceMongo {
 };
 
 
-  update = async (filter, value) => {
-    console.log("Update product with filter and value:");
-    console.log(filter);
-    console.log(value);
-    let result = await productModel.updateOne(filter, value);
-    return result;
-  };
+// Modifica el método update() en tu servicio de producto (productService)
+update = async (filter, value) => {
+
+  // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
+  if (typeof filter === 'string') {
+    filter = { _id: filter };
+  }
+
+  let result = await productModel.updateOne(filter, value);
+  return result;
+};
 
   delete = async (id) => {
     const result = await productModel.deleteOne({ id: id });

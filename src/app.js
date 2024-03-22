@@ -12,6 +12,9 @@ import viewsRoutes from "./routes/views.routes.js";
 // logger
 import { addLogger } from "./config/logger_custom.js";
 
+// errorHandler
+import errorHandler from "./services/middlewares/errorHandler.js";
+
 // Custom Extended
 import UsersExtendRouter from "./routes/custom/users.extend.router.js";
 import ProductExtendRouter from "./routes/custom/product.extend.router.js";
@@ -59,6 +62,7 @@ app.use(cors());
 // // Uso de loggers
 app.use(addLogger);
 
+
 app.use("/", viewsRoutes);
 
 
@@ -69,6 +73,9 @@ const cartExtendRouter = new CartExtendRouter();
 app.use("/api/extend/users", usersExtendRouter.getRouter());
 app.use("/api/extend/products", productExtendRouter.getRouter());
 app.use("/api/extend/cart", cartExtendRouter.getRouter());
+
+app.use(errorHandler)
+
 
 const SERVER_PORT = config.port;
 
