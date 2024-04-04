@@ -3,15 +3,14 @@ import { Command } from 'commander';
 const program = new Command();
 
 program
-    .option('-d', 'Variable para debug', false) //primero va la variable, luego la descripcion y al final puede ir un valor por defecto.
+    .option('-d', 'Variable para debug', false)
     .option('-p <port>', 'Puerto del servidor', 5000)
-    .option('--mode <mode>', 'Modo de trabajo', 'dev')
+    .option('--mode <mode>', 'Modo de trabajo', /^(dev|prod|test)$/, 'dev')
+    .requiredOption('-u <user>', 'Usuario que va a utilizar el aplicativo.', 'No se ha declarado un usuario.');
 
-    .requiredOption('-u <user>', 'Usuario que va a utilizar el aplicativo.', 'No se ha declarado un usuario.');//RequireOption usa un mensaje por defecto si no está presente la opción.
-program.parse(); //Parsea los comandos y valida si son correctos.
+program.parse();
 
-
-// 2do - Listeners
+// Listeners
 process.on("exit", code => {
     console.log("Este codigo se ejecuta antes de salir del proceso.");
     console.log("Codigo de salida del proceso: " + code);
@@ -26,7 +25,5 @@ process.on("message", message => {
     console.log("Este codigo se ejecutará cuando reciba un mensaje de otro proceso.");
     console.log(`Mensaje recibido: ${message}`);
 });
-
-
 
 export default program;

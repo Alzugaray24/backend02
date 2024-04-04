@@ -55,17 +55,29 @@ export default class ProductServiceMongo {
 };
 
 
-// Modifica el método update() en tu servicio de producto (productService)
 update = async (filter, value) => {
+  try {
+    // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
+    if (typeof filter === 'string') {
+      filter = { _id: filter };
+    }
 
-  // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
-  if (typeof filter === 'string') {
-    filter = { _id: filter };
+    // Realizar la actualización en la base de datos y obtener el documento actualizado
+    const updatedDocument = await productModel.findOneAndUpdate(filter, value, { new: true });
+
+    // Verificar si se encontró y se actualizó correctamente el documento
+    if (!updatedDocument) {
+      throw new Error("Documento no encontrado para actualizar.");
+    }
+
+    // Retornar el documento actualizado
+    return updatedDocument;
+  } catch (error) {
+    console.error("Error en update:", error);
+    throw error;
   }
-
-  let result = await productModel.updateOne(filter, value);
-  return result;
 };
+
 
   delete = async (id) => {
     const result = await productModel.deleteOne({ id: id });

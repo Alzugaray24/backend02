@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import config from "./config/config.js";
 import MongoSingleton from "./config/mongodb-singleton.js";
 import cors from "cors";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUIExpress from "swagger-ui-express";
 
 // Vistas
 import viewsRoutes from "./routes/views.routes.js";
@@ -40,6 +42,22 @@ app.engine(
   })
 );
 
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.1",
+    info: {
+      title: "Documentacion API Adopme",
+      description: "Documentacion para uso de swagger",
+    },
+  },
+  apis: [`./src/docs/**/*.yaml`],
+};
+
+const specs = swaggerJSDoc(swaggerOptions);
+
+// Declaramos la Api donde vamos a tener la parte grafica
+app.use("/apidocs", swaggerUIExpress.serve, swaggerUIExpress.setup(specs));
+
 //Cookies
 //router.use(cookieParser());
 app.use(cookieParser("CoderS3cr3tC0d3"));
@@ -62,9 +80,7 @@ app.use(cors());
 // // Uso de loggers
 app.use(addLogger);
 
-
 app.use("/", viewsRoutes);
-
 
 const usersExtendRouter = new UsersExtendRouter();
 const productExtendRouter = new ProductExtendRouter();
@@ -74,8 +90,7 @@ app.use("/api/extend/users", usersExtendRouter.getRouter());
 app.use("/api/extend/products", productExtendRouter.getRouter());
 app.use("/api/extend/cart", cartExtendRouter.getRouter());
 
-app.use(errorHandler)
-
+app.use(errorHandler);
 
 const SERVER_PORT = config.port;
 
