@@ -9,14 +9,11 @@ describe("Testeando mi aplicativo", () => {
   it("El endpoint GET /api/extend/products debe obtener todos los productos correctamente", async () => {
     const { statusCode, _body } = await app.get("/api/extend/products");
 
-    console.log(_body);
-
     expect(statusCode).to.equal(201);
     expect(_body.status).to.equal("success");
     expect(_body.products).to.be.an("object");
     expect(_body.products.items).to.be.an("array");
     expect(_body.products.totalItems).to.be.a("number").to.equal(0);
-
   });
 
   it("El endpoint POST /api/extend/products debe de crear un producto correctamente", async () => {
@@ -62,8 +59,9 @@ describe("Testeando mi aplicativo", () => {
   it("El endpoint DELETE /api/extend/products/:id debe de eliminar un producto correctamente", async () => {
     expect(productId).to.not.be.undefined;
 
-    const { statusCode } = await app
-      .delete(`/api/extend/products/${productId}`);
+    const { statusCode } = await app.delete(
+      `/api/extend/products/${productId}`
+    );
 
     expect(statusCode).to.equal(201);
   });
