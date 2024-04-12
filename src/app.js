@@ -1,3 +1,4 @@
+// app.js
 import express from "express";
 import handlebars from "express-handlebars";
 import __dirname from "./dirname.js";
