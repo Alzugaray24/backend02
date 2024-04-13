@@ -8,7 +8,14 @@ export default class ProductServiceMongo {
   getAll = async (options) => {
     try {
       // Desestructuramos las propiedades del objeto options
-      const { limit = 10, page = 1, category, availability, sort, query } = options || {};
+      const {
+        limit = 10,
+        page = 1,
+        category,
+        availability,
+        sort,
+        query,
+      } = options || {};
 
       // Construimos el filtro en base a las propiedades proporcionadas
       const filter = {};
@@ -52,35 +59,54 @@ export default class ProductServiceMongo {
   findById = async (id) => {
     const result = await productModel.findById(id);
     return result;
-};
+  };
 
+  update = async (filter, value) => {
+    try {
+      // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
+      if (typeof filter === "string") {
+        filter = { _id: filter };
+      }
 
-update = async (filter, value) => {
-  try {
-    // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
-    if (typeof filter === 'string') {
-      filter = { _id: filter };
+      // Realizar la actualización en la base de datos y obtener el documento actualizado
+      const updatedDocument = await productModel.findOneAndUpdate(
+        filter,
+        value,
+        { new: true }
+      );
+
+      // Verificar si se encontró y se actualizó correctamente el documento
+      if (!updatedDocument) {
+        throw new Error("Documento no encontrado para actualizar.");
+      }
+
+      // Retornar el documento actualizado
+      return updatedDocument;
+    } catch (error) {
+      console.error("Error en update:", error);
+      throw error;
     }
-
-    // Realizar la actualización en la base de datos y obtener el documento actualizado
-    const updatedDocument = await productModel.findOneAndUpdate(filter, value, { new: true });
-
-    // Verificar si se encontró y se actualizó correctamente el documento
-    if (!updatedDocument) {
-      throw new Error("Documento no encontrado para actualizar.");
-    }
-
-    // Retornar el documento actualizado
-    return updatedDocument;
-  } catch (error) {
-    console.error("Error en update:", error);
-    throw error;
-  }
-};
-
+  };
 
   delete = async (id) => {
-    const result = await productModel.deleteOne({ id: id });
+    const result = await productModel.deleteOne({ _id: id });
     return result;
   };
+
+  async isCodeUnique(code) {
+    try {
+      // Buscar un producto con el mismo código en la base de datos
+      const existingProduct = await productModel.findOne({ code });
+
+      // Si se encuentra un producto con el mismo código, devuelve falso (no es único)
+      // Si no se encuentra ningún producto con el mismo código, devuelve verdadero (es único)
+      return !existingProduct;
+    } catch (error) {
+      // Manejo de errores, como registro de errores o lanzamiento de excepciones
+      console.error("Error al verificar la unicidad del código:", error);
+      throw new Error(
+        "Error al verificar la unicidad del código del producto."
+      );
+    }
+  }
 }

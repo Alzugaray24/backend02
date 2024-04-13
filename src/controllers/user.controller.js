@@ -6,7 +6,6 @@ import EErrors from "../services/errors-enum.js";
 import { generateUserErrorInfo } from "../services/messages/user-creation-error.message.js";
 import CustomError from "../services/CustomError.js";
 
-
 export const getAllUsersController = async (req, res) => {
   try {
     const users = await userService.getAll();
@@ -37,21 +36,27 @@ export const registerUserController = async (req, res) => {
       name: "User Create Error",
       cause: generateUserErrorInfo({ first_name, last_name, age, email }),
       message: "Error tratando de crear al usuario",
-      code: EErrors.INVALID_TYPES_ERROR
-    })
+      code: EErrors.INVALID_TYPES_ERROR,
+    });
   }
 
   // Verificar si el email es válido
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    req.logger.error("[POST] /api/extend/users/register - Formato de correo electrónico inválido.");
-    return res.status(400).json({ error: "Formato de correo electrónico inválido." });
+    req.logger.error(
+      "[POST] /api/extend/users/register - Formato de correo electrónico inválido."
+    );
+    return res
+      .status(400)
+      .json({ error: "Formato de correo electrónico inválido." });
   }
 
   // Verificar si la edad es un número válido
   if (isNaN(age) || age < 0 || age > 150) {
     req.logger.error("[POST] /api/extend/users/register - Edad inválida.");
-    return res.status(400).json({ error: "La edad debe ser un número válido." });
+    return res
+      .status(400)
+      .json({ error: "La edad debe ser un número válido." });
   }
 
   // Hash de la contraseña
@@ -88,7 +93,6 @@ export const registerUserController = async (req, res) => {
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
-
 
 export const updateUserController = async (req, res) => {
   try {

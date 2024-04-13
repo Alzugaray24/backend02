@@ -19,19 +19,25 @@ import UsersExtendRouter from "./routes/custom/users.extend.router.js";
 import ProductExtendRouter from "./routes/custom/product.extend.router.js";
 import CartExtendRouter from "./routes/custom/cart.extend.router.js";
 
-import Handlebars from "handlebars";
-import { allowInsecurePrototypeAccess } from "@handlebars/allow-prototype-access";
+// import Handlebars from "handlebars";
+// import { allowInsecurePrototypeAccess } from "@handlebars/allow-prototype-access";
 
 const app = express();
 
-app.engine(
-  "hbs",
-  handlebars.engine({
-    extname: "hbs",
-    defaultLayout: "main",
-    handlebars: allowInsecurePrototypeAccess(Handlebars),
-  })
-);
+// Configuracion de handlebars
+
+// app.engine(
+//   "hbs",
+//   handlebars.engine({
+//     extname: "hbs",
+//     defaultLayout: "main",
+//     handlebars: allowInsecurePrototypeAccess(Handlebars),
+//   })
+// );
+
+// app.set("view engine", "hbs");
+// app.set("views", `${__dirname}/views`);
+// app.use(express.static(`${__dirname}/public`));
 
 const swaggerOptions = {
   definition: {
@@ -52,10 +58,6 @@ app.use(cookieParser("CoderS3cr3tC0d3"));
 
 initializePassport();
 app.use(passport.initialize());
-
-app.set("view engine", "hbs");
-app.set("views", `${__dirname}/views`);
-app.use(express.static(`${__dirname}/public`));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
