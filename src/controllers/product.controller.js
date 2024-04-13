@@ -45,8 +45,6 @@ export const postProductController = async (req, res) => {
       return res.status(400).json({ errors: validationErrors });
     }
 
-    console.log("BUENAS TARDES");
-
     const result = await productService.save(productData);
     req.logger.info(
       `[${new Date().toLocaleString()}] [POST] ${
@@ -69,7 +67,9 @@ export const postProductController = async (req, res) => {
 export const putProductController = async (req, res) => {
   try {
     const { id } = req.params;
+
     const newProduct = req.body;
+
     const validationErrors = ProductDTO.validateForUpdate(newProduct);
 
     if (validationErrors.length > 0) {
@@ -79,7 +79,17 @@ export const putProductController = async (req, res) => {
 
     const updatedProduct = await productService.update(id, newProduct);
 
-    if (!updatedProduct) {
+    if (updatedProduct === 0) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [PUT] ${
+          req.originalUrl
+        } - El id proporcionado no es valido`
+      );
+      res.status(404).json({ error: "El id proporcionado no es valido" });
+      return;
+    }
+
+    if (updatedProduct === null) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [PUT] ${
           req.originalUrl
@@ -110,16 +120,17 @@ export const putProductController = async (req, res) => {
 export const deleteProductController = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedProduct = await productService.delete(id);
 
-    const validationErrors = ProductDTO.validateForDelete();
+    const validationErrors = ProductDTO.validateForDelete(id);
 
     if (validationErrors.length > 0) {
       console.log("Errores de validación:", validationErrors);
       return res.status(400).json({ errors: validationErrors });
     }
 
-    if (!deletedProduct) {
+    const deletedProduct = await productService.delete(id);
+
+    if (deletedProduct.deletedCount === 0) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [DELETE] ${
           req.originalUrl
