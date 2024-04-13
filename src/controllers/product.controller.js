@@ -136,7 +136,7 @@ export const deleteProductController = async (req, res) => {
       } - Producto eliminado exitosamente`
     );
     res
-      .status(200)
+      .status(201)
       .json({ status: "success", deleted: `Producto eliminado exitosamente` });
   } catch (error) {
     req.logger.error(
