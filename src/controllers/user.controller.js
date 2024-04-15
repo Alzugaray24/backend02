@@ -5,6 +5,7 @@ import UsersDTO from "../services/dto/users.dto.js";
 import EErrors from "../services/errors-enum.js";
 import { generateUserErrorInfo } from "../services/messages/user-creation-error.message.js";
 import CustomError from "../services/CustomError.js";
+import { cartService } from "../services/service.js";
 
 export const getAllUsersController = async (req, res) => {
   try {
@@ -62,7 +63,7 @@ export const registerUserController = async (req, res) => {
   // Hash de la contraseña
   const hashedPassword = createHash(password);
 
-  // Guardar el usuario
+  // Guardar el usuario y crear un carrito vacío asociado
   try {
     const newUser = await userService.save({
       first_name,
@@ -72,12 +73,31 @@ export const registerUserController = async (req, res) => {
       password: hashedPassword,
     });
 
+    // Agregar console.log para verificar el nuevo usuario
+    console.log("Nuevo usuario registrado:", newUser);
+
+    const newCart = await cartService.createEmptyCart(newUser._id);
+
+    // Agregar console.log para verificar el nuevo carrito
+    console.log("Nuevo carrito creado:", newCart);
+
+    // Verificar el tipo y contenido del campo `cart` en el nuevo usuario
+    console.log("Tipo de 'cart' en el nuevo usuario:", typeof newUser.cart);
+    console.log("Contenido de 'cart' en el nuevo usuario:", newUser.cart);
+
+    // Asignar el ID del carrito al array de carritos del usuario
+    newUser.cart.push(newCart._id);
+
+    // Guardar el usuario actualizado
+    await newUser.save();
+
     req.logger.info(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
       } - Usuario registrado con éxito:`,
       newUser
     );
+
     return res.status(201).json({
       status: "Usuario creado con éxito",
       usuario: newUser,

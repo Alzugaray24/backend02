@@ -1,5 +1,5 @@
-import { userModel } from "./models/users.js"
-import { isValidPassword } from "../../../dirname.js"
+import { userModel } from "./models/users.js";
+import { isValidPassword } from "../../../dirname.js";
 
 export default class UserServiceMongo {
   constructor() {
@@ -48,12 +48,19 @@ export default class UserServiceMongo {
     }
   };
 
-  update = async (filter, updates) => {
+  // En el servicio de usuario (userService)
+  update = async (userId, updateData) => {
     try {
-      const result = await userModel.updateOne(filter, updates);
-      return result;
+      const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        updateData,
+        {
+          new: true, // Devuelve el documento actualizado
+        }
+      );
+      return updatedUser;
     } catch (error) {
-      console.error("Error in update:", error);
+      console.error("Error in user update:", error);
       throw error;
     }
   };
@@ -75,14 +82,14 @@ export default class UserServiceMongo {
         // El usuario no fue encontrado
         return null;
       }
-  
+
       // Verificar la contraseña utilizando isValidPassword
       const isValid = isValidPassword(user, password);
       if (!isValid) {
         // La contraseña es incorrecta
         return null;
       }
-  
+
       // Devolver el usuario si la autenticación fue exitosa
       return user;
     } catch (error) {
@@ -90,5 +97,4 @@ export default class UserServiceMongo {
       throw error;
     }
   };
-  
 }

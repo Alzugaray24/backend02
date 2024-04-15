@@ -38,8 +38,6 @@ export const postProductController = async (req, res) => {
     const productData = { title, description, price, thumbnail, code, stock };
     const validationErrors = await ProductDTO.validateForCreate(productData);
 
-    console.log(validationErrors);
-
     if (validationErrors.length > 0) {
       console.log("Errores de validación:", validationErrors);
       return res.status(400).json({ errors: validationErrors });
@@ -67,46 +65,40 @@ export const postProductController = async (req, res) => {
 export const putProductController = async (req, res) => {
   try {
     const { id } = req.params;
-
     const newProduct = req.body;
 
+    // Validar el nuevo producto utilizando el DTO
     const validationErrors = ProductDTO.validateForUpdate(newProduct);
-
     if (validationErrors.length > 0) {
       console.log("Errores de validación:", validationErrors);
       return res.status(400).json({ errors: validationErrors });
     }
 
+    // Actualizar el producto en la base de datos
     const updatedProduct = await productService.update(id, newProduct);
 
-    if (updatedProduct === 0) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [PUT] ${
-          req.originalUrl
-        } - El id proporcionado no es valido`
-      );
-      res.status(404).json({ error: "El id proporcionado no es valido" });
-      return;
-    }
-
-    if (updatedProduct === null) {
+    // Verificar si el producto se actualizó correctamente
+    if (!updatedProduct) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [PUT] ${
           req.originalUrl
         } - Producto no encontrado para actualizar`
       );
-      res.status(404).json({ error: "Producto no encontrado para actualizar" });
-      return;
+      return res
+        .status(404)
+        .json({ error: "Producto no encontrado para actualizar" });
     }
+
+    console.log("hola pedro");
 
     req.logger.info(
       `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
       } - Producto actualizado con éxito`
     );
-    res.status(201).send({ status: "success", updated: updatedProduct });
+    res.status(200).json({ status: "success", updatedProduct }); // Enviar la respuesta con el producto actualizado
   } catch (error) {
-    console.log("Error al actualizar el producto:", error);
+    console.error("Error al actualizar el producto:", error);
     req.logger.error(
       `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
