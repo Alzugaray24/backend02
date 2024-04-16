@@ -302,7 +302,7 @@ export const githubCallbackController = async (req, res) => {
 export const deleteUserInactiveController = async (req, res) => {
   try {
     // Calcula la fecha límite para la inactividad (hace 2 días)
-    const cutoffDate = moment().subtract(2, "days").toDate();
+    const cutoffDate = moment().subtract(30, "seconds").toDate();
 
     // Envía correos electrónicos a los usuarios cuyas cuentas han sido eliminadas
     const deletedUsersEmails = await userService.getInactiveUsersEmails(
