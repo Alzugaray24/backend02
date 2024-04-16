@@ -11,8 +11,8 @@ export default class CartExtendRouter extends CustomRouter {
   init() {
     this.get("/", ["USER", "USER_PREMIUM"], getCartController);
     this.post("/", ["USER", "USER_PREMIUM"], postCartController);
-    this.post("/:cartId/purchase", ["USER", "USER_PREMIUM"], finalizePurchase);
-    this.put("/:id", ["USER", "USER_PREMIUM"], putCartController);
-    this.delete("/:id", ["USER", "USER_PREMIUM"], deleteCartController);
+    this.post("/purchase", ["USER", "USER_PREMIUM"], finalizePurchase);
+    this.put("/", ["USER", "USER_PREMIUM"], putCartController);
+    this.delete("/", ["USER", "USER_PREMIUM"], deleteCartController);
   }
 }

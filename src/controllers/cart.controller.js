@@ -3,7 +3,7 @@ import { productService } from "../services/service.js";
 import { ticketService } from "../services/service.js";
 import { generateTicketCode, calculateTotalAmount } from "../dirname.js";
 import { userService } from "../services/service.js";
-import CartDTO from "../services/dto/cart.dto.js";
+import mongoose from "mongoose";
 
 export const getCartController = async (req, res) => {
   try {
@@ -44,15 +44,22 @@ export const postCartController = async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    console.log(user);
+    let cartId;
+    if (user.cart.length === 0) {
+      // Si el usuario no tiene un carrito existente, generar un nuevo ID
+      cartId = mongoose.Types.ObjectId();
+      // Agregar el nuevo ID al array user.cart
+      user.cart.push(cartId);
+    } else {
+      // Si el usuario tiene un carrito existente, obtener su ID
+      cartId = user.cart[0];
+    }
 
-    const cartId = user.cart[0]; // Obtener el ID del carrito del array
-    let cart = await cartService.findById(cartId); // Buscar el carrito por su ID
-
-    console.log(cart);
-
-    if (!cart.products) {
-      cart.products = [];
+    // Buscar el carrito por su ID
+    let cart = await cartService.findById(cartId);
+    if (!cart) {
+      // Si el carrito no existe, crear uno nuevo con el ID generado
+      cart = await cartService.create({ _id: cartId, products: [] });
     }
 
     // Verificar si el producto ya existe en el carrito
@@ -72,11 +79,11 @@ export const postCartController = async (req, res) => {
     await cartService.update(cart._id, cart);
 
     // Actualizar el usuario con el carrito modificado
-    await userService.update(userId, { cart: user.cart });
+    await userService.update(userId, { cart: [cart._id] });
 
     return res.status(201).json({
       message: "Producto agregado al carrito exitosamente.",
-      carts: cart,
+      cart: cart,
     });
   } catch (error) {
     console.error("Error al agregar producto al carrito:", error);
@@ -86,38 +93,52 @@ export const postCartController = async (req, res) => {
 
 export const putCartController = async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user._id;
     const { product, quantity } = req.body;
 
-    // Validar los datos del carrito utilizando el DTO
-    const validationErrors = await CartDTO.validateForUpdate({
-      id,
-      product,
-      quantity,
-    });
-
-    console.log(validationErrors);
-
-    if (validationErrors.length > 0) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [PUT] ${
-          req.originalUrl
-        } - Error de validación al actualizar el carrito: ${validationErrors.join(
-          ", "
-        )}.`
-      );
-      return res.status(400).json({ errors: validationErrors });
+    // Buscar al usuario por su ID
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
-    // Realizar la actualización del carrito
-    await cartService.update({ _id: id }, { product, quantity });
+    // Obtener el ID del carrito del usuario
+    const cartId = user.cart[0];
+
+    // Obtener el carrito actual
+    const cart = await cartService.findById(cartId);
+    if (!cart) {
+      return res.status(404).json({ error: "Carrito no encontrado." });
+    }
+
+    // Actualizar la cantidad del producto en el carrito
+    const existingProductIndex = cart.products.findIndex(
+      (item) => item.product.toString() === product.toString()
+    );
+    if (existingProductIndex !== -1) {
+      // Si el producto ya está en el carrito, actualizar la cantidad
+      cart.products[existingProductIndex].quantity = quantity;
+    } else {
+      // Si el producto no está en el carrito, agregarlo con la cantidad especificada
+      cart.products.push({ product, quantity });
+    }
+
+    // Guardar el carrito actualizado
+    await cartService.update(cartId, cart);
+
+    // Actualizar el usuario con el carrito modificado
+    user.cart[0] = cart._id;
+    await userService.update(userId, { cart: user.cart });
 
     req.logger.info(
       `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
       } - Carrito actualizado con éxito.`
     );
-    res.json("Carrito actualizado con éxito");
+    res.status(200).json({
+      status: "success",
+      updatedCart: cart,
+    });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [PUT] ${
@@ -131,8 +152,25 @@ export const putCartController = async (req, res) => {
 
 export const deleteCartController = async (req, res) => {
   try {
-    const { id } = req.params;
-    await cartService.delete(id);
+    const userId = req.user._id;
+
+    // Buscar al usuario por su ID
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+
+    // Obtener el ID del carrito del usuario
+    const cartId = user.cart[0];
+
+    // Verificar si el ID del carrito es válido
+    if (!mongoose.Types.ObjectId.isValid(cartId)) {
+      return res.status(400).json({ error: "ID de carrito inválido." });
+    }
+
+    // Eliminar el carrito por su ID
+    await cartService.delete(cartId);
+
     req.logger.info(
       `[${new Date().toLocaleString()}] [DELETE] ${
         req.originalUrl
@@ -152,10 +190,22 @@ export const deleteCartController = async (req, res) => {
 
 export const finalizePurchase = async (req, res) => {
   try {
-    const cartId = req.params.cartId;
-    const productsFailed = []; // Almacenar los IDs de los productos que no se pudieron comprar
+    const userId = req.user._id;
 
-    // Obtener el carrito correspondiente al ID proporcionado
+    // Buscar al usuario por su ID
+    const user = await userService.findById(userId);
+    if (!user) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Usuario no encontrado.`
+      );
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+
+    const cartId = user.cart[0];
+
+    // Obtener el carrito correspondiente al usuario
     const cart = await cartService.findById(cartId);
     if (!cart) {
       req.logger.error(
@@ -165,6 +215,8 @@ export const finalizePurchase = async (req, res) => {
       );
       return res.status(404).json({ error: "Carrito no encontrado." });
     }
+
+    const productsFailed = []; // Almacenar los IDs de los productos que no se pudieron comprar
 
     // Obtener los detalles completos de los productos en el carrito
     const productsWithDetails = [];
@@ -206,6 +258,8 @@ export const finalizePurchase = async (req, res) => {
 
       // Eliminar el carrito después de completar la compra
       await cartService.delete(cartId);
+
+      await cartService.createEmptyCart(user._id);
 
       res
         .status(200)
