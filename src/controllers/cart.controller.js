@@ -259,8 +259,6 @@ export const finalizePurchase = async (req, res) => {
       // Eliminar el carrito después de completar la compra
       await cartService.delete(cartId);
 
-      await cartService.createEmptyCart(user._id);
-
       res
         .status(200)
         .json({ message: "Compra realizada con éxito.", ticket: ticket });
