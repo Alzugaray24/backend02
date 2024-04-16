@@ -6,24 +6,41 @@ import EErrors from "../services/errors-enum.js";
 import { generateUserErrorInfo } from "../services/messages/user-creation-error.message.js";
 import CustomError from "../services/CustomError.js";
 import { cartService } from "../services/service.js";
+import moment from "moment";
+import { sendDeleteAccountEmail } from "../dirname.js";
 
 export const getAllUsersController = async (req, res) => {
   try {
+    // Obtener todos los usuarios
     const users = await userService.getAll();
-    req.logger.info(
-      `[${new Date().toLocaleString()}] [GET] ${
-        req.originalUrl
-      } - Usuarios obtenidos con éxito:`,
-      users
-    );
-    res.json(users);
+
+    // Verificar si se obtuvieron usuarios
+    if (!users || !users.items || users.items.length === 0) {
+      req.logger.warn(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } - No se encontraron usuarios.`
+      );
+      return res.status(404).json({ error: "No se encontraron usuarios." });
+    }
+
+    // Convertir la información de los usuarios
+    const infoUsers = UsersDTO.infoUser(users.items);
+
+    // Enviar la respuesta con los usuarios
+    res.status(200).send({
+      status: "success",
+      users: infoUsers,
+    });
   } catch (error) {
+    // Registrar el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${
         req.originalUrl
       } - Error al obtener los usuarios:`,
       error
     );
+    // Enviar una respuesta de error
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -175,6 +192,9 @@ export const loginController = async (req, res) => {
         .json({ error: "Correo electrónico o contraseña incorrectos." });
     }
 
+    user.lastLogin = new Date();
+    await userService.update(user._id, { lastLogin: user.lastLogin });
+
     const token = generateJWToken(user);
     req.logger.info(
       `[${new Date().toLocaleString()}] [POST] ${
@@ -275,6 +295,30 @@ export const githubCallbackController = async (req, res) => {
       } - Error en la autenticación de GitHub:`,
       error
     );
+    res.status(500).json({ error: "Error interno del servidor." });
+  }
+};
+
+export const deleteUserInactiveController = async (req, res) => {
+  try {
+    // Calcula la fecha límite para la inactividad (hace 2 días)
+    const cutoffDate = moment().subtract(2, "days").toDate();
+
+    // Envía correos electrónicos a los usuarios cuyas cuentas han sido eliminadas
+    const deletedUsersEmails = await userService.getInactiveUsersEmails(
+      cutoffDate
+    );
+
+    for (const email of deletedUsersEmails) {
+      await sendDeleteAccountEmail(email);
+    }
+
+    // Encuentra y elimina los usuarios inactivos
+    const deletedUsers = await userService.deleteInactiveUsers(cutoffDate);
+
+    res.status(200).json({ message: `${deletedUsers} usuarios eliminados.` });
+  } catch (error) {
+    console.error("Error al eliminar usuarios inactivos:", error);
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };

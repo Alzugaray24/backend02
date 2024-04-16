@@ -1,16 +1,17 @@
 import CustomRouter from "./custom.router.js";
 import {
+  getAllUsersController,
   loginController,
   registerUserController,
   profileController,
   logoutController,
   githubCallbackController,
+  deleteUserInactiveController,
 } from "../../controllers/user.controller.js";
 import passport from "passport";
 
 export default class UsersExtendRouter extends CustomRouter {
   init() {
-
     // Define tus rutas y middlewares
     this.router.get(
       "/github",
@@ -39,11 +40,15 @@ export default class UsersExtendRouter extends CustomRouter {
       res.sendSuccess(req.user);
     });
 
+    this.get("/", ["ADMIN"], getAllUsersController);
+
+    this.delete("/", ["ADMIN"], deleteUserInactiveController);
+
     this.post("/login", ["PUBLIC"], loginController);
 
     this.post("/register", ["PUBLIC"], registerUserController);
 
-    this.get("/profile", ["USER", "USER_PREMIUM"], profileController);
+    this.get("/profile", ["USER", "USER_PREMIUM", "ADMIN"], profileController);
 
     this.post("/logout", ["USER", "USER_PREMIUM", "ADMIN"], logoutController);
   }

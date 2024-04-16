@@ -6,5 +6,15 @@ export default class UsersDTO {
     this.age = user.age;
     this.email = user.email;
     this.fullName = `${this.firstName} - ${this.lastName}`;
+    this.role = user.role;
+  }
+
+  static infoUser(users) {
+    return users.map((user) => ({
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role,
+    }));
   }
 }

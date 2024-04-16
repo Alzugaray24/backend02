@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin", "premium"],
   },
   cart: [],
+  lastLogin: { type: Date, default: Date.now },
 });
 
 const userModel = mongoose.model("User", userSchema);

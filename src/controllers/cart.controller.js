@@ -278,7 +278,7 @@ export const finalizePurchase = async (req, res) => {
         error: "Algunos productos no están disponibles.",
         productsFailed,
       });
-      req.logger.warn(
+      req.logger.error(
         `[${new Date().toLocaleString()}] [POST] ${
           req.originalUrl
         } - Algunos productos no están disponibles.`
