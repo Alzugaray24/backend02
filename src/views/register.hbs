@@ -1,0 +1,38 @@
+<h1 class="title">Registro de Usuario</h1>
+<form id="registerForm" class="form">
+  <div class="form-group">
+    <label for="first_name" class="label">Nombre:</label>
+    <input
+      type="text"
+      id="first_name"
+      name="first_name"
+      class="input"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="last_name" class="label">Apellido:</label>
+    <input type="text" id="last_name" name="last_name" class="input" required />
+  </div>
+  <div class="form-group">
+    <label for="email" class="label">Correo Electrónico:</label>
+    <input type="email" id="email" name="email" class="input" required />
+  </div>
+  <div class="form-group">
+    <label for="age" class="label">Edad:</label>
+    <input type="number" id="age" name="age" class="input" required />
+  </div>
+  <div class="form-group">
+    <label for="password" class="label">Contraseña:</label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      class="input"
+      required
+    />
+  </div>
+  <button type="submit" class="button">Registrarse</button>
+  <p class="link">¿Ya tienes cuenta?
+    <a href="/login" class="link">Inicia sesión aquí</a>.</p>
+</form>
