@@ -28,8 +28,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const data = await response.json();
-      window.location.href = "/";
-      console.log(data); // Aquí puedes manejar la respuesta del servidor, como redireccionar a otra página o mostrar un mensaje al usuario
+      console.log(data);
+
+      // Guardar el token en una cookie
+      document.cookie = `token=${data.token}; path=/`;
+
+      window.location.href = "/"; // Redirigir a otra página después de iniciar sesión
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       // Aquí puedes mostrar un mensaje de error al usuario

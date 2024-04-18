@@ -150,4 +150,29 @@ export const sendDeleteAccountEmail = async (email) => {
   }
 };
 
+// Función para obtener el ID de usuario a partir del token de autenticación
+export const getUserIdFromToken = (token) => {
+  try {
+    console.log("token", token);
+
+    if (!token) {
+      throw new Error("Token de autenticación no proporcionado.");
+    }
+
+    const decodedToken = jwt.verify(token, PRIVATE_KEY);
+
+    if (!decodedToken) {
+      throw new Error("Token de autenticación inválido.");
+    }
+
+    console.log(decodedToken);
+
+    const userId = decodedToken.user._id;
+
+    return userId;
+  } catch (error) {
+    throw new Error("Error al obtener el ID de usuario del token.");
+  }
+};
+
 export default __dirname;

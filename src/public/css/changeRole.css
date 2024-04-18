@@ -1,0 +1,34 @@
+/* Estilos para la tabla de usuarios */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .user-table th,
+  .user-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  /* Estilos para los botones */
+  .change-role-btn,
+  .delete-user-btn {
+    padding: 6px 10px;
+    margin-right: 5px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .change-role-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+  }
+  
+  .delete-user-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+  }
+  

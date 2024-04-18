@@ -16,11 +16,6 @@ export const getAllUsersController = async (req, res) => {
 
     // Verificar si se obtuvieron usuarios
     if (!users || !users.items || users.items.length === 0) {
-      req.logger.warn(
-        `[${new Date().toLocaleString()}] [GET] ${
-          req.originalUrl
-        } - No se encontraron usuarios.`
-      );
       return res.status(404).json({ error: "No se encontraron usuarios." });
     }
 
@@ -28,10 +23,7 @@ export const getAllUsersController = async (req, res) => {
     const infoUsers = UsersDTO.infoUser(users.items);
 
     // Enviar la respuesta con los usuarios
-    res.status(200).send({
-      status: "success",
-      users: infoUsers,
-    });
+    return infoUsers;
   } catch (error) {
     // Registrar el error
     req.logger.error(
@@ -41,7 +33,7 @@ export const getAllUsersController = async (req, res) => {
       error
     );
     // Enviar una respuesta de error
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 

@@ -17,10 +17,8 @@ export const getProductController = async (req, res) => {
       } - Productos obtenidos con éxito:`,
       products
     );
-    res.status(201).send({
-      status: "success",
-      products: products,
-    });
+
+    return products;
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${

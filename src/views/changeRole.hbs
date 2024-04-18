@@ -1,0 +1,42 @@
+<h1>Lista de Usuarios</h1>
+<table class="user-table">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Correo Electrónico</th>
+      <th>Rol</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each users}}
+      <tr>
+        <td>{{this.firstName}} {{this.lastName}}</td>
+        <td>{{this.email}}</td>
+        <td>{{this.role}}</td>
+        <td>
+          <button
+            class="change-role-btn"
+            onclick="changeRole('{{this._id}}')"
+          >Cambiar Rol</button>
+          <button
+            class="delete-user-btn"
+            onclick="deleteUser('{{this._id}}')"
+          >Borrar Usuario</button>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<script>
+  function changeRole(userId) { // Obtiene el elemento de la fila que contiene
+  el usuario const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+  // Obtiene el rol actual del usuario let currentRole =
+  row.querySelector('.user-role').textContent.trim(); // Define los roles
+  posibles const roles = ['user', 'user_premium', 'admin']; // Encuentra el
+  índice actual del rol let currentIndex = roles.indexOf(currentRole); //
+  Calcula el siguiente índice de rol let nextIndex = (currentIndex + 1) %
+  roles.length; // Actualiza el rol en la interfaz de usuario
+  row.querySelector('.user-role').textContent = roles[nextIndex]; }
+</script>

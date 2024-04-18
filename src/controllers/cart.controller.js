@@ -4,6 +4,7 @@ import { ticketService } from "../services/service.js";
 import { generateTicketCode, calculateTotalAmount } from "../dirname.js";
 import { userService } from "../services/service.js";
 import mongoose from "mongoose";
+import { getUserIdFromToken } from "../dirname.js";
 
 export const getCartController = async (req, res) => {
   try {
@@ -35,7 +36,8 @@ export const getCartController = async (req, res) => {
 
 export const postCartController = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
     const { productId, quantity } = req.body;
 
     // Buscar al usuario por su ID
@@ -64,15 +66,15 @@ export const postCartController = async (req, res) => {
 
     // Verificar si el producto ya existe en el carrito
     const existingProductIndex = cart.products.findIndex(
-      (item) => item.product.toString() === productId.toString()
+      (item) => item._id.toString() === productId.toString()
     );
 
     if (existingProductIndex !== -1) {
-      // Si el producto ya existe, actualizar la cantidad
+      // Si el producto ya existe, incrementar la cantidad
       cart.products[existingProductIndex].quantity += quantity;
     } else {
       // Si el producto no existe, agregarlo al carrito
-      cart.products.push({ product: productId, quantity });
+      cart.products.push({ _id: productId, quantity });
     }
 
     // Guardar los cambios en el carrito
