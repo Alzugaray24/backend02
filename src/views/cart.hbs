@@ -1,0 +1,16 @@
+<h1 class="cart-title">Shopping Cart</h1>
+<div class="cart-items">
+  {{#if carts.length}}
+    <ul class="cart-list">
+      {{#each carts}}
+        <li class="cart-item">
+          <span>{{this._id}} - {{this.quantity}}</span>
+          <!-- Aquí puedes mostrar los detalles de cada producto -->
+        </li>
+      {{/each}}
+    </ul>
+    <button id="finalizeBtn" class="btn btn-primary">Finalizar compra</button>
+  {{else}}
+    <p class="empty-cart-message">No hay productos en el carrito.</p>
+  {{/if}}
+</div>

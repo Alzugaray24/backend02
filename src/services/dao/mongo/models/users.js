@@ -1,4 +1,3 @@
-// users.model.js
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -16,7 +15,12 @@ const userSchema = new mongoose.Schema({
     default: "user",
     enum: ["user", "admin", "premium"],
   },
-  cart: [],
+  cart: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Cart",
+    },
+  ],
   lastLogin: { type: Date, default: Date.now },
 });
 

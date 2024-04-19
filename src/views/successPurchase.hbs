@@ -1,0 +1,17 @@
+<div class="card-container">
+  <div class="card">
+    <div class="purchase-details">
+      <h2 class="detalles-compra-title">Detalles de la Compra</h2>
+      {{#if data}}
+        <p class="success-message">Compra realizada con éxito!</p>
+        <p class="total-amount">Total de la compra: USD {{data.ticket.amount}}</p>
+        <p class="ticket-code">Código de ticket: {{data.ticket.code}}</p>
+        <p class="purchase-date">Fecha de compra:
+          {{data.ticket.purchase_datetime}}</p>
+      {{else}}
+        <p class="error-message">No se encontraron datos del ticket.</p>
+      {{/if}}
+    </div>
+    <a href="/" class="link">Volver al incio</a>.</p>
+  </div>
+</div>

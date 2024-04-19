@@ -28,15 +28,3 @@
     {{/each}}
   </tbody>
 </table>
-
-<script>
-  function changeRole(userId) { // Obtiene el elemento de la fila que contiene
-  el usuario const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-  // Obtiene el rol actual del usuario let currentRole =
-  row.querySelector('.user-role').textContent.trim(); // Define los roles
-  posibles const roles = ['user', 'user_premium', 'admin']; // Encuentra el
-  índice actual del rol let currentIndex = roles.indexOf(currentRole); //
-  Calcula el siguiente índice de rol let nextIndex = (currentIndex + 1) %
-  roles.length; // Actualiza el rol en la interfaz de usuario
-  row.querySelector('.user-role').textContent = roles[nextIndex]; }
-</script>

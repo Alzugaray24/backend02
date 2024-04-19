@@ -2,8 +2,8 @@ export default class CartRepository {
   constructor(dao) {
     this.dao = dao;
   }
-  getAll = () => {
-    return this.dao.getAll();
+  getAll = (userId) => {
+    return this.dao.getAll(userId);
   };
   save = (cart) => {
     return this.dao.save(cart);

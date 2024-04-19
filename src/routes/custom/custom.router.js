@@ -59,14 +59,10 @@ export default class CustomRouter {
     // Validar si tiene acceso público:
     if (policies[0] === "PUBLIC") return next();
 
-    console.log(policies[0]);
-
     // Obtener el token de la cookie
     const token = req.cookies.token;
 
     // const token = req.headers.authorization;
-
-    console.log(req.headers);
 
     if (!token) {
       return res

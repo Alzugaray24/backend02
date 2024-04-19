@@ -1,4 +1,5 @@
 import { cartModel } from "./models/carts.js";
+import { productModel } from "./models/product.js";
 import mongoose from "mongoose";
 
 export default class CartServiceMongo {
@@ -6,29 +7,22 @@ export default class CartServiceMongo {
     console.log("Working with Carts using Database persistence in MongoDB");
   }
 
-  getAll = async (options) => {
+  getAll = async (user) => {
     try {
-      const { limit = 10, page = 1, user } = options || {};
-
-      const filter = {};
-      if (user) {
-        filter.user = user;
+      // Verifica si el usuario tiene un carrito asociado
+      if (!user.cart || user.cart.length === 0) {
+        return null; // Retorna null si el usuario no tiene carrito
       }
 
-      const result = await cartModel
-        .find(filter)
-        .limit(limit)
-        .skip((page - 1) * limit)
-        .lean();
+      // Obtiene el ID del carrito asociado al usuario
+      const cartId = user.cart[0]; // Suponiendo que solo hay un carrito por usuario
 
-      const totalItems = await cartModel.countDocuments(filter);
+      // Busca el carrito por su ID
+      const cart = await cartModel.findById(cartId).lean();
 
-      return {
-        items: result,
-        totalItems,
-      };
+      return cart.products;
     } catch (error) {
-      console.error("Error in getAll:", error);
+      console.error("Error al obtener el carrito para el usuario:", error);
       throw error;
     }
   };

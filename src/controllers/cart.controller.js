@@ -8,10 +8,16 @@ import { getUserIdFromToken } from "../dirname.js";
 
 export const getCartController = async (req, res) => {
   try {
-    const userId = req.user._id; // Obtener el ID del usuario actual
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
 
-    // Llamar a la función getAll del servicio de carritos con el filtro configurado para obtener solo los carritos de este usuario
-    const carts = await cartService.getAll({ user: userId });
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+
+    // Obtener todos los carritos del usuario con los detalles de los productos asociados utilizando el servicio
+    const carts = await cartService.getAll(user);
 
     if (!carts || carts.length === 0) {
       req.logger.error(
@@ -22,7 +28,7 @@ export const getCartController = async (req, res) => {
       return res.status(404).json({ error: "No se encontraron carritos." });
     }
 
-    res.json(carts);
+    return carts;
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${
@@ -36,6 +42,8 @@ export const getCartController = async (req, res) => {
 
 export const postCartController = async (req, res) => {
   try {
+    console.log("PEPEPEPE");
+    console.log(req.user);
     const token = req.cookies.token;
     const userId = getUserIdFromToken(token);
     const { productId, quantity } = req.body;
@@ -192,16 +200,11 @@ export const deleteCartController = async (req, res) => {
 
 export const finalizePurchase = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
 
-    // Buscar al usuario por su ID
     const user = await userService.findById(userId);
     if (!user) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [POST] ${
-          req.originalUrl
-        } - Usuario no encontrado.`
-      );
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
@@ -223,7 +226,7 @@ export const finalizePurchase = async (req, res) => {
     // Obtener los detalles completos de los productos en el carrito
     const productsWithDetails = [];
     for (const item of cart.products) {
-      const product = await productService.findById(item.product);
+      const product = await productService.findById(item._id);
       if (!product) {
         req.logger.error(
           `[${new Date().toLocaleString()}] [POST] ${
@@ -233,9 +236,12 @@ export const finalizePurchase = async (req, res) => {
         return res.status(404).json({ error: "Producto no encontrado." });
       }
 
+      console.log(product.stock);
+      console.log(item.quantity);
+
       // Verificar si hay suficiente stock disponible
       if (product.stock < item.quantity) {
-        productsFailed.push(item.product); // Agregar el ID del producto que no se pudo comprar
+        productsFailed.push(item._id); // Agregar el ID del producto que no se pudo comprar
       } else {
         productsWithDetails.push({
           price: product.price,
@@ -254,8 +260,8 @@ export const finalizePurchase = async (req, res) => {
         code: generateTicketCode(),
         purchase_datetime: new Date(),
         amount: totalAmount,
-        purchaser: req.user.email,
-        products: cart.products,
+        purchaser: user.email,
+        products: cart,
       });
 
       // Eliminar el carrito después de completar la compra
