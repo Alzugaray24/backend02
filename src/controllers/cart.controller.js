@@ -13,30 +13,32 @@ export const getCartController = async (req, res) => {
 
     const user = await userService.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
     }
 
     // Obtener todos los carritos del usuario con los detalles de los productos asociados utilizando el servicio
     const carts = await cartService.getAll(user);
 
     if (!carts || carts.length === 0) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [GET] ${
-          req.originalUrl
-        } - No se encontraron carritos para el usuario con ID: ${userId}.`
-      );
-      return res.status(404).json({ error: "No se encontraron carritos." });
+      const error = new Error("No se encontraron carritos.");
+      error.status = 404;
+      throw error;
     }
 
     return carts;
   } catch (error) {
+    // Registra el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${
         req.originalUrl
       } - Error al obtener los carritos:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+
+    // Captura el error y lo pasa al controlador que lo invocó
+    throw error;
   }
 };
 
@@ -203,7 +205,9 @@ export const finalizePurchase = async (req, res) => {
 
     const user = await userService.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
     }
 
     const cartId = user.cart[0];
@@ -211,35 +215,26 @@ export const finalizePurchase = async (req, res) => {
     // Obtener el carrito correspondiente al usuario
     const cart = await cartService.findById(cartId);
     if (!cart) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [POST] ${
-          req.originalUrl
-        } - Carrito no encontrado.`
-      );
-      return res.status(404).json({ error: "Carrito no encontrado." });
+      const error = new Error("Carrito no encontrado.");
+      error.status = 404;
+      throw error;
     }
 
-    const productsFailed = []; // Almacenar los IDs de los productos que no se pudieron comprar
+    const productsFailed = [];
+    const productsWithDetails = [];
 
     // Obtener los detalles completos de los productos en el carrito
-    const productsWithDetails = [];
     for (const item of cart.products) {
       const product = await productService.findById(item._id);
       if (!product) {
-        req.logger.error(
-          `[${new Date().toLocaleString()}] [POST] ${
-            req.originalUrl
-          } - Producto no encontrado.`
-        );
-        return res.status(404).json({ error: "Producto no encontrado." });
+        const error = new Error("Producto no encontrado.");
+        error.status = 404;
+        throw error;
       }
-
-      console.log(product.stock);
-      console.log(item.quantity);
 
       // Verificar si hay suficiente stock disponible
       if (product.stock < item.quantity) {
-        productsFailed.push(item._id); // Agregar el ID del producto que no se pudo comprar
+        productsFailed.push(item._id);
       } else {
         productsWithDetails.push({
           price: product.price,
@@ -252,8 +247,8 @@ export const finalizePurchase = async (req, res) => {
     // Calcular el total de la compra con los detalles completos de los productos
     const totalAmount = calculateTotalAmount(productsWithDetails);
 
-    // Crear un ticket de compra solo si se pudieron comprar todos los productos
     if (productsFailed.length === 0) {
+      // Crear un ticket de compra y realizar la compra con éxito
       const ticket = await ticketService.save({
         code: generateTicketCode(),
         purchase_datetime: new Date(),
@@ -268,21 +263,18 @@ export const finalizePurchase = async (req, res) => {
 
       // Verificar si se pudo actualizar correctamente el carrito
       if (!updatedCart) {
-        // Manejar el caso en que la actualización no tenga éxito
-        console.error("Error al actualizar el carrito a vacío");
-        return res
-          .status(500)
-          .json({ error: "Error al actualizar el carrito a vacío" });
+        const error = new Error("Error al actualizar el carrito a vacío");
+        error.status = 500;
+        throw error;
       }
 
-      res
-        .status(200)
-        .json({ message: "Compra realizada con éxito.", ticket: ticket });
       req.logger.info(
         `[${new Date().toLocaleString()}] [POST] ${
           req.originalUrl
         } - Compra realizada con éxito.`
       );
+
+      return ticket;
     } else {
       // Actualizar el carrito para contener solo los productos que no se pudieron comprar
       cart.products = cart.products.filter((item) =>
@@ -294,11 +286,9 @@ export const finalizePurchase = async (req, res) => {
 
       // Verificar si se pudo eliminar correctamente el carrito
       if (!deletedCart) {
-        // Manejar el caso en que la eliminación no tenga éxito
-        console.error("Error al eliminar el carrito existente");
-        return res
-          .status(500)
-          .json({ error: "Error al eliminar el carrito existente" });
+        const error = new Error("Error al eliminar el carrito existente");
+        error.status = 500;
+        throw error;
       }
 
       // Crear un nuevo carrito vacío asociado al usuario
@@ -306,30 +296,34 @@ export const finalizePurchase = async (req, res) => {
 
       // Verificar si se pudo crear correctamente el nuevo carrito
       if (!newCart) {
-        // Manejar el caso en que la creación no tenga éxito
-        console.error("Error al crear un nuevo carrito");
-        return res
-          .status(500)
-          .json({ error: "Error al crear un nuevo carrito" });
+        const error = new Error("Error al crear un nuevo carrito");
+        error.status = 500;
+        throw error;
       }
 
-      res.status(400).json({
-        error: "Algunos productos no están disponibles.",
-        productsFailed,
-      });
       req.logger.error(
         `[${new Date().toLocaleString()}] [POST] ${
           req.originalUrl
         } - Algunos productos no están disponibles.`
       );
+
+      if (productsFailed.length > 0) {
+        const error = new Error("Algunos productos no están disponibles.");
+        error.status = 404;
+        error.productsFailed = productsFailed;
+        throw error;
+      }
     }
   } catch (error) {
+    // Registra el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
       } - Error al realizar la compra:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+
+    // Captura el error y lo pasa al controlador que lo invocó
+    throw error;
   }
 };

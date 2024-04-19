@@ -9,10 +9,10 @@ import CustomRouter from "./custom.router.js";
 
 export default class CartExtendRouter extends CustomRouter {
   init() {
-    this.get("/", ["PUBLIC"], getCartController);
-    this.post("/", ["PUBLIC"], postCartController);
-    this.post("/purchase", ["PUBLIC"], finalizePurchase);
-    this.put("/", ["PUBLIC"], putCartController);
-    this.delete("/", ["PUBLIC"], deleteCartController);
+    this.get("/", ["USER", "USER_PREMIUM", "ADMIN"], getCartController);
+    this.post("/", ["USER", "USER_PREMIUM", "ADMIN"], postCartController);
+    this.post("/purchase", ["USER", "USER_PREMIUM", "ADMIN"], finalizePurchase);
+    this.put("/", ["USER", "USER_PREMIUM", "ADMIN"], putCartController);
+    this.delete("/", ["USER", "USER_PREMIUM", "ADMIN"], deleteCartController);
   }
 }

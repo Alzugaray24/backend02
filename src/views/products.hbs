@@ -1,21 +1,25 @@
 {{! products.hbs }}
+<div class="container-productList">
+  <h1>Lista de Productos</h1>
+</div>
+<div class="product-container">
+  {{#each products}}
+    <div class="product-card">
+      <div class="product-thumbnail">
+        <img src="{{thumbnail}}" alt="Product Thumbnail" />
+      </div>
+      <div class="product-info">
+        <h2 class="product-title">{{title}}</h2>
+        <p class="product-description">{{description}}</p>
+        <p class="product-price">${{price}}</p>
+        <p class="product-code">Código: {{code}}</p>
+        <p class="product-stock">Stock: {{stock}}</p>
 
-{{#each products}}
-  <div class="product-card">
-    <div class="product-thumbnail">
-      <img src="{{thumbnail}}" alt="Product Thumbnail" />
+        <!-- Formulario para agregar al carrito -->
+        <form class="add-to-cart-form" data-_id="{{_id}}">
+          <button type="submit" class="add-to-cart-btn">Agregar al carrito</button>
+        </form>
+      </div>
     </div>
-    <div class="product-info">
-      <h2 class="product-title">{{title}}</h2>
-      <p class="product-description">{{description}}</p>
-      <p class="product-price">${{price}}</p>
-      <p class="product-code">Código: {{code}}</p>
-      <p class="product-stock">Stock: {{stock}}</p>
-
-      <!-- Formulario para agregar al carrito -->
-      <form class="add-to-cart-form" data-_id="{{_id}}">
-        <button type="submit" class="add-to-cart-btn">Agregar al carrito</button>
-      </form>
-    </div>
-  </div>
-{{/each}}
+  {{/each}}
+</div>

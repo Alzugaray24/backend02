@@ -1,6 +1,6 @@
 <h1 class="cart-title">Shopping Cart</h1>
 <div class="cart-items">
-  {{#if carts.length}}
+  {{#if carts}}
     <ul class="cart-list">
       {{#each carts}}
         <li class="cart-item">
@@ -11,6 +11,10 @@
     </ul>
     <button id="finalizeBtn" class="btn btn-primary">Finalizar compra</button>
   {{else}}
-    <p class="empty-cart-message">No hay productos en el carrito.</p>
+    {{#if errorMessage}}
+      <p class="error-message">{{errorMessage}}</p>
+    {{else}}
+      <p class="empty-cart-message">No hay productos en el carrito.</p>
+    {{/if}}
   {{/if}}
 </div>

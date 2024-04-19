@@ -4,14 +4,36 @@
       <h2 class="detalles-compra-title">Detalles de la Compra</h2>
       {{#if data}}
         <p class="success-message">Compra realizada con éxito!</p>
-        <p class="total-amount">Total de la compra: USD {{data.ticket.amount}}</p>
-        <p class="ticket-code">Código de ticket: {{data.ticket.code}}</p>
-        <p class="purchase-date">Fecha de compra:
-          {{data.ticket.purchase_datetime}}</p>
+        <p class="total-amount">Total de la compra: USD {{data.amount}}</p>
+        <p class="ticket-code">Código de ticket: {{data.code}}</p>
+        <p class="purchase-date">Fecha de compra: {{data.purchase_datetime}}</p>
       {{else}}
         <p class="error-message">No se encontraron datos del ticket.</p>
       {{/if}}
+      {{#if error}}
+        <div class="error-container">
+          <p class="error-title">Algunos productos no se pudieron completar:</p>
+          <ul class="failed-products-list">
+            {{#each error.productsFailed}}
+              <li class="failed-product">{{this}}</li>
+            {{/each}}
+          </ul>
+        </div>
+        <div class="success-container">
+          <p class="success-title">Productos que se pudieron completar:</p>
+          <ul class="completed-products-list">
+            {{#each error.productsWithDetails}}
+              <li class="completed-product">
+                <span class="product-price">Precio: {{this.price}}</span>,
+                <span class="product-stock">Stock: {{this.stock}}</span>,
+                <span class="product-quantity">Cantidad:
+                  {{this.quantity}}</span>
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/if}}
     </div>
-    <a href="/" class="link">Volver al incio</a>.</p>
+    <a href="/" class="link">Volver al inicio</a>
   </div>
 </div>

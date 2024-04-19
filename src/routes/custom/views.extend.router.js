@@ -1,8 +1,10 @@
 import CustomRouter from "./custom.router.js";
 import { getAllUsersController } from "../../controllers/user.controller.js";
 import { getProductController } from "../../controllers/product.controller.js";
-import { getCartController } from "../../controllers/cart.controller.js";
-import { productModel } from "../../services/dao/mongo/models/product.js";
+import {
+  finalizePurchase,
+  getCartController,
+} from "../../controllers/cart.controller.js";
 
 export default class ViewsExtendRouter extends CustomRouter {
   init() {
@@ -75,28 +77,26 @@ export default class ViewsExtendRouter extends CustomRouter {
       try {
         const cssFileName = "cart.css";
         const jsFileName = "cart.js";
-        const cssEmptyCart = "cssEmptyCart.css";
 
         // Obtener los carritos del usuario
         const carts = await getCartController(req, res);
-
-        console.log(carts);
-
-        if (!carts || carts.length === 0) {
-          // Renderizar una versión de la plantilla sin datos de carrito
-          return res.render("cart_empty", { cssEmptyCart: cssEmptyCart });
-        }
 
         // Renderizar la plantilla "cart" y pasar los datos de los carritos y productos
         res.render("cart", {
           cssFileName: cssFileName,
           jsFileName: jsFileName,
           carts: carts, // Pasar los carritos con los detalles de los productos
+          errorMessage: null, // Indicar que no hay error
         });
       } catch (error) {
         console.error("Error en la ruta /cart:", error);
-        // Manejar el error adecuadamente
-        res.status(500).send("Error en la ruta /cart");
+        // Enviar una respuesta con estado 200 y un objeto de datos que indica el error
+        res.status(200).render("cart", {
+          cssFileName: "error.css",
+          jsFileName: "error.js",
+          carts: null, // No hay carritos
+          errorMessage: "No se encontraron carritos.", // Mensaje de error personalizado
+        });
       }
     });
 
@@ -109,8 +109,8 @@ export default class ViewsExtendRouter extends CustomRouter {
           const jsFileName = "successPurchase.js";
 
           // Obtener los datos pasados como parámetros de consulta en la URL
-          const data = JSON.parse(req.query.data);
-          console.log(data.message);
+          const data = await finalizePurchase(req, res);
+          console.log(data);
 
           // Renderizar la plantilla "cart" y pasar los datos de los carritos y productos
           res.render("successPurchase", {
@@ -119,9 +119,11 @@ export default class ViewsExtendRouter extends CustomRouter {
             data: data,
           });
         } catch (error) {
-          console.error("Error en la ruta /cart:", error);
-          // Manejar el error adecuadamente
-          res.status(500).send("Error en la ruta /cart");
+          res.status(404).render("successPurchase", {
+            cssFileName: "error.css",
+            jsFileName: "error.js",
+            error,
+          });
         }
       }
     );

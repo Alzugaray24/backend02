@@ -1,50 +1,71 @@
 .card-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-
-  .link {
-    text-align: center;
-    color: #007bff;
-    text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
-  
-  .card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-  }
-  
-  .finalizar-compra-title {
-    font-size: 24px;
-    color: #333;
-  }
-  
-  .detalles-compra-title {
-    font-size: 20px;
-    color: #666;
-  }
-  
-  .success-message {
-    color: green;
-  }
-  
-  .error-message {
-    color: red;
-  }
-  
-  .total-amount {
-    font-weight: bold;
-  }
-  
-  .ticket-code {
-    font-style: italic;
-  }
-  
-  .purchase-date {
-    font-weight: bold;
-  }
-  
+
+.card {
+  width: 400px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.purchase-details {
+  margin-bottom: 20px;
+}
+
+.detalles-compra-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.success-message {
+  color: green;
+  font-weight: bold;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+.error-container {
+  margin-top: 20px;
+}
+
+.error-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.failed-products-list,
+.completed-products-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.failed-product {
+  color: red;
+}
+
+.completed-product {
+  color: green;
+}
+
+.link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+

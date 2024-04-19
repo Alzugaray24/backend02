@@ -8,6 +8,8 @@ body {
 .title {
     text-align: center;
     color: #333;
+    margin-top: 50px;
+    margin-bottom: 20px;
 }
 
 .form {

@@ -10,11 +10,11 @@ import {
 
 export default class UsersExtendRouter extends CustomRouter {
   init() {
-    this.get("/", ["PUBLIC"], getAllUsersController);
-    this.delete("/", ["PUBLIC"], deleteUserInactiveController);
+    this.get("/", ["ADMIN"], getAllUsersController);
+    this.delete("/", ["ADMIN"], deleteUserInactiveController);
     this.post("/login", ["PUBLIC"], loginController);
     this.post("/register", ["PUBLIC"], registerUserController);
-    this.get("/profile", ["PUBLIC"], profileController);
-    this.post("/logout", ["PUBLIC"], logoutController);
+    this.get("/profile", ["USER", "USER_PREMIUM", "ADMIN"], profileController);
+    this.post("/logout", ["USER", "USER_PREMIUM", "ADMIN"], logoutController);
   }
 }
