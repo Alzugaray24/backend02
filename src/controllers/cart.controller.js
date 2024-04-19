@@ -42,8 +42,6 @@ export const getCartController = async (req, res) => {
 
 export const postCartController = async (req, res) => {
   try {
-    console.log("PEPEPEPE");
-    console.log(req.user);
     const token = req.cookies.token;
     const userId = getUserIdFromToken(token);
     const { productId, quantity } = req.body;
@@ -265,7 +263,17 @@ export const finalizePurchase = async (req, res) => {
       });
 
       // Eliminar el carrito después de completar la compra
-      await cartService.delete(cartId);
+      // Actualizar el carrito para que esté vacío
+      const updatedCart = await cartService.update(cartId, { products: [] });
+
+      // Verificar si se pudo actualizar correctamente el carrito
+      if (!updatedCart) {
+        // Manejar el caso en que la actualización no tenga éxito
+        console.error("Error al actualizar el carrito a vacío");
+        return res
+          .status(500)
+          .json({ error: "Error al actualizar el carrito a vacío" });
+      }
 
       res
         .status(200)
@@ -280,7 +288,30 @@ export const finalizePurchase = async (req, res) => {
       cart.products = cart.products.filter((item) =>
         productsFailed.includes(item.product)
       );
-      await cartService.update(cartId, cart);
+
+      // Eliminar el carrito existente
+      const deletedCart = await cartService.delete(cartId);
+
+      // Verificar si se pudo eliminar correctamente el carrito
+      if (!deletedCart) {
+        // Manejar el caso en que la eliminación no tenga éxito
+        console.error("Error al eliminar el carrito existente");
+        return res
+          .status(500)
+          .json({ error: "Error al eliminar el carrito existente" });
+      }
+
+      // Crear un nuevo carrito vacío asociado al usuario
+      const newCart = await cartService.createEmptyCart(userId);
+
+      // Verificar si se pudo crear correctamente el nuevo carrito
+      if (!newCart) {
+        // Manejar el caso en que la creación no tenga éxito
+        console.error("Error al crear un nuevo carrito");
+        return res
+          .status(500)
+          .json({ error: "Error al crear un nuevo carrito" });
+      }
 
       res.status(400).json({
         error: "Algunos productos no están disponibles.",

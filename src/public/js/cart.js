@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({}), // No hay datos necesarios para este endpoint en particular
       });
 
+      console.log(response);
+
       if (!response.ok) {
         throw new Error("Error al finalizar la compra"); // Manejar errores de la solicitud
       }

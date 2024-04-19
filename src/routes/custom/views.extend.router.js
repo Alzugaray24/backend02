@@ -75,9 +75,17 @@ export default class ViewsExtendRouter extends CustomRouter {
       try {
         const cssFileName = "cart.css";
         const jsFileName = "cart.js";
+        const cssEmptyCart = "cssEmptyCart.css";
 
         // Obtener los carritos del usuario
         const carts = await getCartController(req, res);
+
+        console.log(carts);
+
+        if (!carts || carts.length === 0) {
+          // Renderizar una versión de la plantilla sin datos de carrito
+          return res.render("cart_empty", { cssEmptyCart: cssEmptyCart });
+        }
 
         // Renderizar la plantilla "cart" y pasar los datos de los carritos y productos
         res.render("cart", {
