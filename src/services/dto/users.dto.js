@@ -11,6 +11,7 @@ export default class UsersDTO {
 
   static infoUser(users) {
     return users.map((user) => ({
+      id: user._id,
       firstName: user.first_name,
       lastName: user.last_name,
       email: user.email,

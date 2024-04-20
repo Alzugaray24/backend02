@@ -17,14 +17,8 @@
         <td>{{this.email}}</td>
         <td>{{this.role}}</td>
         <td>
-          <button
-            class="change-role-btn"
-            onclick="changeRole('{{this._id}}')"
-          >Cambiar Rol</button>
-          <button
-            class="delete-user-btn"
-            onclick="deleteUser('{{this._id}}')"
-          >Borrar Usuario</button>
+          <button class="change-role-btn" data-_id="{{this.id}}">Cambiar Rol</button>
+          <button class="delete-user-btn" data-_id="{{this.id}}">Borrar Usuario</button>
         </td>
       </tr>
     {{/each}}

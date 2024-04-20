@@ -150,6 +150,42 @@ export const sendDeleteAccountEmail = async (email) => {
   }
 };
 
+export const sendPurchaseSuccessEmail = async (email, ticket) => {
+  try {
+    console.log(ticket);
+    // Configurar el transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
+      // Aquí se muestra un ejemplo con el servicio SMTP de Gmail
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    // Contenido del correo electrónico
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: "Notificación de compra",
+      text:
+        `Tu compra fue realizada con éxito!\n\n` +
+        `Código: ${ticket.code}\n` +
+        `Fecha de compra: ${ticket.purchase_datetime}\n` +
+        `Monto: USD${ticket.amount}\n` +
+        `Comprador: ${ticket.purchaser}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
 // Función para obtener el ID de usuario a partir del token de autenticación
 export const getUserIdFromToken = (token) => {
   try {

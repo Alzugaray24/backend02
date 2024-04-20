@@ -42,6 +42,7 @@ export default class ViewsExtendRouter extends CustomRouter {
 
         // Esperar a que se resuelva la promesa y obtener los datos de usuario
         const users = await getAllUsersController(req, res);
+        console.log(users);
 
         // Renderizar la vista con los datos de usuario
         res.render("changeRole", {

@@ -7,7 +7,10 @@ import { generateUserErrorInfo } from "../services/messages/user-creation-error.
 import CustomError from "../services/CustomError.js";
 import { cartService } from "../services/service.js";
 import moment from "moment";
-import { sendDeleteAccountEmail } from "../dirname.js";
+import {
+  sendDeleteAccountEmail,
+  sendPurchaseSuccessEmail,
+} from "../dirname.js";
 
 export const getAllUsersController = async (req, res) => {
   try {
@@ -148,13 +151,22 @@ export const updateUserController = async (req, res) => {
 export const deleteUserController = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const user = await userService.findById(id);
+    if (!user) {
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
+    }
+
     await userService.delete(id);
     req.logger.info(
       `[${new Date().toLocaleString()}] [DELETE] ${
         req.originalUrl
       } - Usuario eliminado con éxito`
     );
-    res.json("Usuario eliminado con éxito");
+
+    res.status(200).json({ message: "Usuario eliminado con éxito" });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [DELETE] ${
@@ -312,5 +324,31 @@ export const deleteUserInactiveController = async (req, res) => {
   } catch (error) {
     console.error("Error al eliminar usuarios inactivos:", error);
     res.status(500).json({ error: "Error interno del servidor." });
+  }
+};
+
+export const changeRoleUserController = async (req, res) => {
+  try {
+    const { userId, newRole } = req.params;
+
+    const user = await userService.findById(userId);
+    if (!user) {
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
+    }
+
+    user.role = newRole;
+
+    console.log(user);
+
+    await userService.update(userId, user);
+
+    res.status(200).send({
+      msg: "Rol cambiado con exito",
+      newUserRole: user,
+    });
+  } catch (error) {
+    throw error;
   }
 };

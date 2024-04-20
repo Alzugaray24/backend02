@@ -5,6 +5,7 @@ import { generateTicketCode, calculateTotalAmount } from "../dirname.js";
 import { userService } from "../services/service.js";
 import mongoose from "mongoose";
 import { getUserIdFromToken } from "../dirname.js";
+import { sendPurchaseSuccessEmail } from "../dirname.js";
 
 export const getCartController = async (req, res) => {
   try {
@@ -267,6 +268,8 @@ export const finalizePurchase = async (req, res) => {
         error.status = 500;
         throw error;
       }
+
+      await sendPurchaseSuccessEmail(user.email, ticket);
 
       req.logger.info(
         `[${new Date().toLocaleString()}] [POST] ${
