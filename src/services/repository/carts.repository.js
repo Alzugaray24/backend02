@@ -31,4 +31,8 @@ export default class CartRepository {
   createEmptyCart = async (userId) => {
     return this.dao.createEmptyCart(userId);
   };
+
+  getCartById = async (id) => {
+    return this.dao.createEmptyCart(id);
+  };
 }

@@ -5,6 +5,7 @@ import {
   finalizePurchase,
   getCartController,
 } from "../../controllers/cart.controller.js";
+import { productService } from "../../services/service.js";
 
 export default class ViewsExtendRouter extends CustomRouter {
   init() {
@@ -80,13 +81,26 @@ export default class ViewsExtendRouter extends CustomRouter {
         const jsFileName = "cart.js";
 
         // Obtener los carritos del usuario
-        const carts = await getCartController(req, res);
+        const cart = await getCartController(req, res);
+
+        console.log(cart);
+
+        // Obtener los detalles completos de los productos en el carrito
+        const products = await Promise.all(
+          cart.products.map(async (item) => {
+            const product = await productService.findById(item.product._id);
+            return { quantity: item.quantity, product };
+          })
+        );
+
+        console.log(products);
 
         // Renderizar la plantilla "cart" y pasar los datos de los carritos y productos
         res.render("cart", {
           cssFileName: cssFileName,
           jsFileName: jsFileName,
-          carts: carts, // Pasar los carritos con los detalles de los productos
+          carts: products, // Pasar el carrito
+          products: products, // Pasar los productos con sus detalles
           errorMessage: null, // Indicar que no hay error
         });
       } catch (error) {
@@ -96,6 +110,7 @@ export default class ViewsExtendRouter extends CustomRouter {
           cssFileName: "error.css",
           jsFileName: "error.js",
           carts: null, // No hay carritos
+          products: null, // No hay productos
           errorMessage: "No se encontraron carritos.", // Mensaje de error personalizado
         });
       }
@@ -128,5 +143,25 @@ export default class ViewsExtendRouter extends CustomRouter {
         }
       }
     );
+
+    this.get("/modifyProducts", ["ADMIN"], async (req, res) => {
+      try {
+        const cssFileName = "modifyProducts.css";
+        const jsFileName = "modifyProducts.js";
+
+        const products = await getProductController(req, res);
+        console.log(products);
+
+        // Renderizar la plantilla "cart" y pasar los datos de los carritos y productos
+        res.render("modifyProducts", {
+          cssFileName: cssFileName,
+          jsFileName: jsFileName,
+          products: products.items,
+        });
+      } catch (error) {
+        console.log("hubo un error");
+        throw error;
+      }
+    });
   }
 }

@@ -1,7 +1,5 @@
-import ProductServiceMongo from "../dao/mongo/product.service.js";
+import { productService } from "../service.js";
 import mongoose from "mongoose";
-
-const productService = new ProductServiceMongo();
 
 export default class ProductDTO {
   constructor(product) {

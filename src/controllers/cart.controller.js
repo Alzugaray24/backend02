@@ -19,22 +19,22 @@ export const getCartController = async (req, res) => {
       throw error;
     }
 
-    // Obtener todos los carritos del usuario con los detalles de los productos asociados utilizando el servicio
-    const carts = await cartService.getAll(user);
+    // Obtener el carrito del usuario con los detalles de los productos asociados utilizando el servicio
+    const cart = await cartService.getAll(user);
 
-    if (!carts || carts.length === 0) {
-      const error = new Error("No se encontraron carritos.");
+    if (!cart) {
+      const error = new Error("No se encontró el carrito.");
       error.status = 404;
       throw error;
     }
 
-    return carts;
+    return cart;
   } catch (error) {
     // Registra el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${
         req.originalUrl
-      } - Error al obtener los carritos:`,
+      } - Error al obtener el carrito:`,
       error
     );
 
@@ -237,9 +237,14 @@ export const finalizePurchase = async (req, res) => {
       if (product.stock < item.quantity) {
         productsFailed.push(item._id);
       } else {
+        // Reducir el stock del producto
+        const updatedStock = product.stock - item.quantity;
+        // Actualizar el stock del producto en la base de datos
+        await productService.updateStock(product._id, updatedStock);
+
         productsWithDetails.push({
           price: product.price,
-          stock: product.stock,
+          stock: updatedStock, // Actualizamos el stock
           quantity: item.quantity,
         });
       }
@@ -258,13 +263,12 @@ export const finalizePurchase = async (req, res) => {
         products: cart,
       });
 
-      // Eliminar el carrito después de completar la compra
-      // Actualizar el carrito para que esté vacío
+      // Vaciar los productos del carrito después de completar la compra
       const updatedCart = await cartService.update(cartId, { products: [] });
 
       // Verificar si se pudo actualizar correctamente el carrito
       if (!updatedCart) {
-        const error = new Error("Error al actualizar el carrito a vacío");
+        const error = new Error("Error al vaciar el carrito");
         error.status = 500;
         throw error;
       }
@@ -279,27 +283,19 @@ export const finalizePurchase = async (req, res) => {
 
       return ticket;
     } else {
-      // Actualizar el carrito para contener solo los productos que no se pudieron comprar
+      // Filtrar los productos que no se pudieron comprar del carrito
       cart.products = cart.products.filter((item) =>
         productsFailed.includes(item.product)
       );
 
-      // Eliminar el carrito existente
-      const deletedCart = await cartService.delete(cartId);
+      // Actualizar el carrito con los productos restantes
+      const updatedCart = await cartService.update(cartId, {
+        products: cart.products,
+      });
 
-      // Verificar si se pudo eliminar correctamente el carrito
-      if (!deletedCart) {
-        const error = new Error("Error al eliminar el carrito existente");
-        error.status = 500;
-        throw error;
-      }
-
-      // Crear un nuevo carrito vacío asociado al usuario
-      const newCart = await cartService.createEmptyCart(userId);
-
-      // Verificar si se pudo crear correctamente el nuevo carrito
-      if (!newCart) {
-        const error = new Error("Error al crear un nuevo carrito");
+      // Verificar si se pudo actualizar correctamente el carrito
+      if (!updatedCart) {
+        const error = new Error("Error al actualizar el carrito");
         error.status = 500;
         throw error;
       }

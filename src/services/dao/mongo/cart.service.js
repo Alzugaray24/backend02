@@ -20,7 +20,18 @@ export default class CartServiceMongo {
       // Busca el carrito por su ID
       const cart = await cartModel.findById(cartId).lean();
 
-      return cart.products;
+      // Obtener los ids de los productos en una nueva constante
+      const cartProducts = await Promise.all(
+        cart.products.map(async (product) => {
+          const productData = await productModel.findById(product._id);
+          return { quantity: product.quantity, product: productData };
+        })
+      );
+
+      // Reemplazar los productos con sus datos completos y cantidad
+      cart.products = cartProducts;
+
+      return cart;
     } catch (error) {
       console.error("Error al obtener el carrito para el usuario:", error);
       throw error;
@@ -104,5 +115,17 @@ export default class CartServiceMongo {
   delete = async (id) => {
     const result = await cartModel.deleteOne({ _id: id });
     return result;
+  };
+
+  getCartById = async (id) => {
+    try {
+      // Busca el carrito por su ID en la base de datos
+      const cart = await cartModel.findById(id).lean();
+      return cart;
+    } catch (error) {
+      // Si ocurre un error, lógalo y lanza una excepción
+      console.error("Error in getCartById:", error);
+      throw error;
+    }
   };
 }

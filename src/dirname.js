@@ -152,7 +152,6 @@ export const sendDeleteAccountEmail = async (email) => {
 
 export const sendPurchaseSuccessEmail = async (email, ticket) => {
   try {
-    console.log(ticket);
     // Configurar el transporte de nodemailer
     const transporter = nodemailer.createTransport({
       // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
@@ -182,6 +181,37 @@ export const sendPurchaseSuccessEmail = async (email, ticket) => {
   } catch (error) {
     // Manejo de errores
     console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
+export const sendDeletedProdEmail = async (email) => {
+  try {
+    // Configurar el transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
+      // Aquí se muestra un ejemplo con el servicio SMTP de Gmail
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    // Contenido del correo electrónico
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: `Aviso de producto eliminado`,
+      text: `Un producto fue eliminado de tu carrito 
+      debido a que ya no existe`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al enviar el mail sobre producto eliminado", error);
     throw error;
   }
 };

@@ -1,4 +1,3 @@
-{{! products.hbs }}
 <div class="container-productList">
   <h1>Lista de Productos</h1>
 </div>
@@ -16,10 +15,12 @@
         <p class="product-code">Código: {{code}}</p>
         <p class="product-stock">Stock: {{stock}}</p>
 
-        <!-- Formulario para agregar al carrito -->
-        <form class="add-to-cart-form" data-_id="{{_id}}">
-          <button type="submit" class="add-to-cart-btn">Agregar al carrito</button>
-        </form>
+        <div class="product-buttons">
+          <button class="update-product-btn" data-_id="{{this._id}}">Actualizar
+            Producto</button>
+          <button class="delete-product-btn" data-_id="{{this._id}}">Eliminar
+            Producto</button>
+        </div>
       </div>
     </div>
   {{/each}}
