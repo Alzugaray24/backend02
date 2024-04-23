@@ -13,31 +13,30 @@ import errorHandler from "./services/middlewares/errorHandler.js";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
 
-import viewsRoutes from "./routes/views.routes.js";
-
 import UsersExtendRouter from "./routes/custom/users.extend.router.js";
 import ProductExtendRouter from "./routes/custom/product.extend.router.js";
 import CartExtendRouter from "./routes/custom/cart.extend.router.js";
+import ViewsExtendRouter from "./routes/custom/views.extend.router.js";
 
-// import Handlebars from "handlebars";
-// import { allowInsecurePrototypeAccess } from "@handlebars/allow-prototype-access";
+import Handlebars from "handlebars";
+import { allowInsecurePrototypeAccess } from "@handlebars/allow-prototype-access";
 
 const app = express();
 
 // Configuracion de handlebars
 
-// app.engine(
-//   "hbs",
-//   handlebars.engine({
-//     extname: "hbs",
-//     defaultLayout: "main",
-//     handlebars: allowInsecurePrototypeAccess(Handlebars),
-//   })
-// );
+app.engine(
+  "hbs",
+  handlebars.engine({
+    extname: "hbs",
+    defaultLayout: "main",
+    handlebars: allowInsecurePrototypeAccess(Handlebars),
+  })
+);
 
-// app.set("view engine", "hbs");
-// app.set("views", `${__dirname}/views`);
-// app.use(express.static(`${__dirname}/public`));
+app.set("view engine", "hbs");
+app.set("views", `${__dirname}/views`);
+app.use(express.static(`${__dirname}/public`));
 
 const swaggerOptions = {
   definition: {
@@ -66,12 +65,14 @@ app.use(cors());
 
 app.use(addLogger);
 
-app.use("/", viewsRoutes);
+// app.use("/", viewsRoutes);
 
 const usersExtendRouter = new UsersExtendRouter();
 const productExtendRouter = new ProductExtendRouter();
 const cartExtendRouter = new CartExtendRouter();
+const viewsExtendRouter = new ViewsExtendRouter();
 
+app.use("/", viewsExtendRouter.getRouter());
 app.use("/api/extend/users", usersExtendRouter.getRouter());
 app.use("/api/extend/products", productExtendRouter.getRouter());
 app.use("/api/extend/cart", cartExtendRouter.getRouter());

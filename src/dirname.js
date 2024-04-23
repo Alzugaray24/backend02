@@ -4,6 +4,8 @@ import multer from "multer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import nodemailer from "nodemailer";
+import config from "./config/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -36,7 +38,7 @@ export const PRIVATE_KEY = "CoderhouseBackendCourseSecretKeyJWT";
  * Third argument: Token expiration time.
  */
 export const generateJWToken = (user) => {
-  return jwt.sign({ user }, PRIVATE_KEY, { expiresIn: "60s" });
+  return jwt.sign({ user }, PRIVATE_KEY, { expiresIn: "1h" });
 };
 /**
  * Method that authenticates the JWT token for our requests.
@@ -55,7 +57,6 @@ export const authToken = (req, res, next) => {
       .send({ error: "User not authenticated or missing token." });
   }
   const token = authHeader.split(" ")[1]; // Split to remove the Bearer word.
-
 
   // Validate token
   jwt.verify(token, PRIVATE_KEY, (error, credentials) => {
@@ -118,5 +119,122 @@ export function calculateTotalAmount(products) {
 
   return totalAmount;
 }
+
+export const sendDeleteAccountEmail = async (email) => {
+  try {
+    // Configurar el transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
+      // Aquí se muestra un ejemplo con el servicio SMTP de Gmail
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    // Contenido del correo electrónico
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: "Notificación de eliminación de cuenta",
+      text: "Tu cuenta ha sido eliminada. Si tienes alguna pregunta, ponte en contacto con el soporte.",
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
+export const sendPurchaseSuccessEmail = async (email, ticket) => {
+  try {
+    // Configurar el transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
+      // Aquí se muestra un ejemplo con el servicio SMTP de Gmail
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    // Contenido del correo electrónico
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: "Notificación de compra",
+      text:
+        `Tu compra fue realizada con éxito!\n\n` +
+        `Código: ${ticket.code}\n` +
+        `Fecha de compra: ${ticket.purchase_datetime}\n` +
+        `Monto: USD${ticket.amount}\n` +
+        `Comprador: ${ticket.purchaser}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
+export const sendDeletedProdEmail = async (email) => {
+  try {
+    // Configurar el transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      // Configura los detalles del servicio SMTP o el servicio de correo electrónico que estés utilizando
+      // Aquí se muestra un ejemplo con el servicio SMTP de Gmail
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    // Contenido del correo electrónico
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: `Aviso de producto eliminado`,
+      text: `Un producto fue eliminado de tu carrito 
+      debido a que ya no existe`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al enviar el mail sobre producto eliminado", error);
+    throw error;
+  }
+};
+
+// Función para obtener el ID de usuario a partir del token de autenticación
+export const getUserIdFromToken = (token) => {
+  try {
+    if (!token) {
+      throw new Error("Token de autenticación no proporcionado.");
+    }
+
+    const decodedToken = jwt.verify(token, PRIVATE_KEY);
+
+    if (!decodedToken) {
+      throw new Error("Token de autenticación inválido.");
+    }
+
+    const userId = decodedToken.user._id;
+
+    return userId;
+  } catch (error) {
+    throw new Error("Error al obtener el ID de usuario del token.");
+  }
+};
 
 export default __dirname;

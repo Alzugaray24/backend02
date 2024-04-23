@@ -1,6 +1,5 @@
-import ProductServiceMongo from "../dao/mongo/product.service.js";
-
-const productService = new ProductServiceMongo();
+import { productService } from "../service.js";
+import mongoose from "mongoose";
 
 export default class ProductDTO {
   constructor(product) {
@@ -64,8 +63,6 @@ export default class ProductDTO {
   static validateForUpdate(product) {
     const errors = [];
 
-    console.log(product);
-
     if (!product.title || product.title.trim() === "") {
       errors.push("El título del producto no puede estar vacío.");
     }
@@ -93,8 +90,14 @@ export default class ProductDTO {
     return errors;
   }
 
-  static validateForDelete() {
-    // Puedes añadir validaciones específicas para la operación de eliminación aquí si es necesario.
-    return [];
+  static validateForDelete(id) {
+    const errors = [];
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      errors.push("El ID proporcionado no es válido.");
+      return errors;
+    }
+
+    return errors;
   }
 }

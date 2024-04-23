@@ -1,0 +1,27 @@
+<div class="container-productList">
+  <h1>Lista de Productos</h1>
+</div>
+<div class="product-container">
+  {{#each products}}
+    <div class="product-card">
+      <div class="product-thumbnail">
+        <img src="{{thumbnail}}" alt="Product Thumbnail" />
+      </div>
+      <div class="product-info">
+        <h2 class="product-title">{{title}}</h2>
+        <p class="product-description">{{_id}}</p>
+        <p class="product-description">{{description}}</p>
+        <p class="product-price">${{price}}</p>
+        <p class="product-code">Código: {{code}}</p>
+        <p class="product-stock">Stock: {{stock}}</p>
+
+        <div class="product-buttons">
+          <button class="update-product-btn" data-_id="{{this._id}}">Actualizar
+            Producto</button>
+          <button class="delete-product-btn" data-_id="{{this._id}}">Eliminar
+            Producto</button>
+        </div>
+      </div>
+    </div>
+  {{/each}}
+</div>

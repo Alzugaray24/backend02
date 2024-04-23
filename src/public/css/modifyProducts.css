@@ -1,0 +1,111 @@
+.container-productList {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .product-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    width: 70%;
+    margin: 0 auto;
+    align-items: center;
+  }
+  
+  .product-card {
+    width: calc(25% - 20px); /* Calcular el ancho de cada tarjeta (25% del ancho total menos el espacio entre ellas) */
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+  }
+  
+  .product-thumbnail img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+  
+  .product-title {
+    font-size: 1.2em;
+    margin-top: 0;
+  }
+  
+  .product-description {
+    margin-top: 5px;
+  }
+  
+  .product-price {
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  .product-code,
+  .product-stock {
+    margin-top: 5px;
+  }
+  
+  .product-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .product-buttons button {
+    font-size: 12px;
+  }
+  
+  .update-product-btn,
+  .delete-product-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 45%; /* Ajustar el ancho de los botones en dispositivos pequeños */
+    margin-top: 10px; /* Añadir espacio entre los botones en dispositivos pequeños */
+  }
+  
+  .update-product-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .update-product-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .delete-product-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .delete-product-btn:hover {
+    background-color: #d32f2f;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .product-container {
+      width: 90%;
+    }
+    
+    .product-card {
+      width: calc(50% - 20px); /* Calcular el ancho de cada tarjeta en dispositivos medianos */
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .product-card {
+      width: 100%; /* Hacer que las tarjetas ocupen todo el ancho disponible en dispositivos pequeños */
+    }
+    
+    .product-buttons {
+      flex-direction: column; /* Colocar los botones en columnas en pantallas muy pequeñas */
+      align-items: center; /* Centrar los botones en el eje X en pantallas muy pequeñas */
+    }
+    
+    .update-product-btn,
+    .delete-product-btn {
+      width: 100%; /* Hacer que los botones ocupen todo el ancho disponible en pantallas muy pequeñas */
+    }
+  }
+  
