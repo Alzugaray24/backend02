@@ -4,49 +4,36 @@ import multer from "multer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import nodemailer from "nodemailer";
+import config from "./config/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 
-// Configurar multer para manejar archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "src/public/img"); // Directorio donde se guardarán los archivos
+    cb(null, "src/public/img");
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname); // Usar el nombre original del archivo
+    cb(null, file.originalname);
   },
 });
 
 export const upload = multer({ storage: storage });
 
-//Crypto functions
 export const createHash = (password) =>
   bcrypt.hashSync(password, bcrypt.genSaltSync(10));
 export const isValidPassword = (user, password) => {
   return bcrypt.compareSync(password, user.password);
 };
 
-//JSON Web Tokens JWT functions:
 export const PRIVATE_KEY = "CoderhouseBackendCourseSecretKeyJWT";
-/**
- * Generate token JWT using jwt.sign:
- * First argument: object to encrypt inside the JWT
- * Second argument: The private key to sign the token.
- * Third argument: Token expiration time.
- */
+
 export const generateJWToken = (user) => {
-  return jwt.sign({ user }, PRIVATE_KEY, { expiresIn: "60s" });
+  return jwt.sign({ user }, PRIVATE_KEY, { expiresIn: "1h" });
 };
-/**
- * Method that authenticates the JWT token for our requests.
- * NOTE: This acts as a middleware, observe the next.
- * @param {*} req Request object
- * @param {*} res Response object
- * @param {*} next Pass to the next event.
- */
+
 export const authToken = (req, res, next) => {
-  // The JWT token is saved in the authorization headers.
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -54,20 +41,16 @@ export const authToken = (req, res, next) => {
       .status(401)
       .send({ error: "User not authenticated or missing token." });
   }
-  const token = authHeader.split(" ")[1]; // Split to remove the Bearer word.
+  const token = authHeader.split(" ")[1];
 
-
-  // Validate token
   jwt.verify(token, PRIVATE_KEY, (error, credentials) => {
     if (error)
       return res.status(403).send({ error: "Token invalid, Unauthorized!" });
-    // Token OK
     req.user = credentials.user;
     next();
   });
 };
 
-// For error handling
 export const passportCall = (strategy) => {
   return async (req, res, next) => {
     passport.authenticate(strategy, function (err, user, info) {
@@ -83,7 +66,6 @@ export const passportCall = (strategy) => {
   };
 };
 
-// For Auth management
 export const authorization = (role) => {
   return async (req, res, next) => {
     if (!req.user)
@@ -98,25 +80,121 @@ export const authorization = (role) => {
   };
 };
 
-// Función para generar un código de ticket único
 export function generateTicketCode() {
-  // Generar un código de ticket único utilizando un timestamp y algún valor aleatorio
-  const timestamp = Date.now().toString(36); // Convertir el timestamp a una cadena de caracteres en base 36
-  const randomValue = Math.random().toString(36).substr(2, 5); // Generar un valor aleatorio y tomar solo los primeros 5 caracteres
-  return timestamp + randomValue; // Concatenar el timestamp y el valor aleatorio para obtener el código del ticket
+  const timestamp = Date.now().toString(36);
+  const randomValue = Math.random().toString(36).substr(2, 5);
+  return timestamp + randomValue;
 }
 
-// Función para calcular el total de la compra
 export function calculateTotalAmount(products) {
-  // Inicializar el total en 0
   let totalAmount = 0;
 
-  // Iterar sobre cada producto y sumar el precio por la cantidad al total
   for (const item of products) {
-    totalAmount += item.price * item.quantity; // Suponiendo que cada producto tenga un precio y una cantidad
+    totalAmount += item.price * item.quantity;
   }
 
   return totalAmount;
 }
+
+export const sendDeleteAccountEmail = async (email) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: "Notificación de eliminación de cuenta",
+      text: "Tu cuenta ha sido eliminada. Si tienes alguna pregunta, ponte en contacto con el soporte.",
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
+export const sendPurchaseSuccessEmail = async (email, ticket) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: "Notificación de compra",
+      text:
+        `Tu compra fue realizada con éxito!\n\n` +
+        `Código: ${ticket.code}\n` +
+        `Fecha de compra: ${ticket.purchase_datetime}\n` +
+        `Monto: USD${ticket.amount}\n` +
+        `Comprador: ${ticket.purchaser}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Error al enviar el correo electrónico:", error);
+    throw error;
+  }
+};
+
+export const sendDeletedProdEmail = async (email) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: config.emailNodemailer,
+        pass: config.passNodemailer,
+      },
+    });
+
+    const mailOptions = {
+      from: `Coder test ${config.emailNodemailer}`,
+      to: email,
+      subject: `Aviso de producto eliminado`,
+      text: `Un producto fue eliminado de tu carrito 
+      debido a que ya no existe`,
+    };
+
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Error al enviar el mail sobre producto eliminado", error);
+    throw error;
+  }
+};
+
+export const getUserIdFromToken = (token) => {
+  try {
+    if (!token) {
+      throw new Error("Token de autenticación no proporcionado.");
+    }
+
+    const decodedToken = jwt.verify(token, PRIVATE_KEY);
+
+    if (!decodedToken) {
+      throw new Error("Token de autenticación inválido.");
+    }
+
+    const userId = decodedToken.user._id;
+
+    return userId;
+  } catch (error) {
+    throw new Error("Error al obtener el ID de usuario del token.");
+  }
+};
 
 export default __dirname;

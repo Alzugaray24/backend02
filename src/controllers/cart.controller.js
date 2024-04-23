@@ -1,156 +1,265 @@
-import { cartService } from "../services/service.js";
-import { productService } from "../services/service.js";
-import { ticketService } from "../services/service.js";
-import { generateTicketCode, calculateTotalAmount } from "../dirname.js";
+import {
+  cartService,
+  productService,
+  ticketService,
+  userService,
+} from "../services/service.js";
+import {
+  generateTicketCode,
+  calculateTotalAmount,
+  getUserIdFromToken,
+  sendPurchaseSuccessEmail,
+} from "../dirname.js";
+import mongoose from "mongoose";
 
 export const getCartController = async (req, res) => {
   try {
-    const carts = await cartService.getAll();
-    if (!carts || carts.length === 0) {
-      req.logger.warn(`[${new Date().toLocaleString()}] [GET] ${req.originalUrl} - No se encontraron carritos.`);
-      return res.status(404).json({ error: "No se encontraron carritos." });
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
+    const user = await userService.findById(userId);
+    if (!user) {
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
     }
-    res.json(carts);
+    const cart = await cartService.getAll(user);
+    if (!cart) {
+      const error = new Error("No se encontró el carrito.");
+      error.status = 404;
+      throw error;
+    }
+    return cart;
   } catch (error) {
-    req.logger.error(`[${new Date().toLocaleString()}] [GET] ${req.originalUrl} - Error al obtener los carritos:`, error);
-    res.status(500).json({ error: "Error interno del servidor." });
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Error al obtener el carrito:`,
+      error
+    );
+    throw error;
   }
 };
 
 export const postCartController = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
     const { productId, quantity } = req.body;
-
-    // Obtener el carrito del usuario o crear uno nuevo si no existe
-    let cart = await cartService.getAll({ user: userId });
-    if (cart.items.length === 0) {
-      // Si el usuario no tiene un carrito, crear uno nuevo y asignarle el ID del usuario
-      cart = await cartService.save({ user: userId, products: [] });
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    let cartId;
+    if (user.cart.length === 0) {
+      cartId = mongoose.Types.ObjectId();
+      user.cart.push(cartId);
     } else {
-      cart = cart.items[0]; // Tomamos el primer carrito encontrado (asumiendo que cada usuario solo tiene uno)
+      cartId = user.cart[0];
     }
-
-    // Buscar el producto por su ID
-    const product = await productService.findById(productId);
-    if (!product) {
-      return res.status(404).json({ error: "Producto no encontrado." });
+    let cart = await cartService.findById(cartId);
+    if (!cart) {
+      cart = await cartService.create({ _id: cartId, products: [] });
     }
-
-    // Verificar si el producto ya está en el carrito
-    const existingProductIndex = cart.products.findIndex(item => item.product._id.toString() === productId);
+    const existingProductIndex = cart.products.findIndex(
+      (item) => item._id.toString() === productId.toString()
+    );
     if (existingProductIndex !== -1) {
-      // Si el producto ya está en el carrito, actualizar la cantidad
       cart.products[existingProductIndex].quantity += quantity;
     } else {
-      // Si el producto no está en el carrito, agregarlo con toda su información
-      cart.products.push({ product: product, quantity });
+      cart.products.push({ _id: productId, quantity });
     }
-
-    // Guardar el carrito actualizado
-    await cartService.update({ _id: cart._id }, cart);
-
-    res.status(201).json({ message: "Producto agregado al carrito exitosamente.", cart: cart });
-    req.logger.info(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Producto agregado al carrito exitosamente.`);
+    await cartService.update(cart._id, cart);
+    await userService.update(userId, { cart: [cart._id] });
+    return res.status(201).json({
+      message: "Producto agregado al carrito exitosamente.",
+      cart: cart,
+    });
   } catch (error) {
-    req.logger.error(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Error al agregar producto al carrito:`, error);
-    res.status(500).json({ error: "Error interno del servidor." });
+    console.error("Error al agregar producto al carrito:", error);
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const putCartController = async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user._id;
     const { product, quantity } = req.body;
-    if (!product || !quantity) {
-      req.logger.error(`[${new Date().toLocaleString()}] [PUT] ${req.originalUrl} - El ID del producto y la cantidad son obligatorios.`);
-      return res
-        .status(400)
-        .json({ error: "El ID del producto y la cantidad son obligatorios." });
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
     }
-    await cartService.update(id, { product, quantity });
-    req.logger.info(`[${new Date().toLocaleString()}] [PUT] ${req.originalUrl} - Carrito actualizado con éxito.`);
-    res.json("Carrito actualizado con éxito");
+    const cartId = user.cart[0];
+    const cart = await cartService.findById(cartId);
+    if (!cart) {
+      return res.status(404).json({ error: "Carrito no encontrado." });
+    }
+    const existingProductIndex = cart.products.findIndex(
+      (item) => item.product.toString() === product.toString()
+    );
+    if (existingProductIndex !== -1) {
+      cart.products[existingProductIndex].quantity = quantity;
+    } else {
+      cart.products.push({ product, quantity });
+    }
+    await cartService.update(cartId, cart);
+    user.cart[0] = cart._id;
+    await userService.update(userId, { cart: user.cart });
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [PUT] ${
+        req.originalUrl
+      } - Carrito actualizado con éxito.`
+    );
+    res.status(200).json({ status: "success", updatedCart: cart });
   } catch (error) {
-    req.logger.error(`[${new Date().toLocaleString()}] [PUT] ${req.originalUrl} - Error al actualizar el carrito:`, error);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [PUT] ${
+        req.originalUrl
+      } - Error al actualizar el carrito:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const deleteCartController = async (req, res) => {
   try {
-    const { id } = req.params;
-    await cartService.delete(id);
-    req.logger.info(`[${new Date().toLocaleString()}] [DELETE] ${req.originalUrl} - Carrito eliminado con éxito.`);
+    const userId = req.user._id;
+    const user = await userService.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    const cartId = user.cart[0];
+    if (!mongoose.Types.ObjectId.isValid(cartId)) {
+      return res.status(400).json({ error: "ID de carrito inválido." });
+    }
+    await cartService.delete(cartId);
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [DELETE] ${
+        req.originalUrl
+      } - Carrito eliminado con éxito.`
+    );
     res.json("Carrito eliminado con éxito");
   } catch (error) {
-    req.logger.error(`[${new Date().toLocaleString()}] [DELETE] ${req.originalUrl} - Error al eliminar el carrito:`, error);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [DELETE] ${
+        req.originalUrl
+      } - Error al eliminar el carrito:`,
+      error
+    );
     res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const finalizePurchase = async (req, res) => {
   try {
-    const cartId = req.params.cartId;
-    const productsFailed = []; // Almacenar los IDs de los productos que no se pudieron comprar
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
 
-    // Obtener el carrito correspondiente al ID proporcionado
-    const cart = await cartService.findById(cartId);
-    if (!cart) {
-      req.logger.error(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Carrito no encontrado.`);
-      return res.status(404).json({ error: "Carrito no encontrado." });
+    const user = await userService.findById(userId);
+    if (!user) {
+      const error = new Error("Usuario no encontrado.");
+      error.status = 404;
+      throw error;
     }
 
-    // Obtener los detalles completos de los productos en el carrito
+    const cartId = user.cart[0];
+
+    const cart = await cartService.findById(cartId);
+    if (!cart) {
+      const error = new Error("Carrito no encontrado.");
+      error.status = 404;
+      throw error;
+    }
+
+    const productsFailed = [];
     const productsWithDetails = [];
+
     for (const item of cart.products) {
-      const product = await productService.findById(item.product);
+      const product = await productService.findById(item._id);
       if (!product) {
-        req.logger.error(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Producto no encontrado.`);
-        return res.status(404).json({ error: "Producto no encontrado." });
+        const error = new Error("Producto no encontrado.");
+        error.status = 404;
+        throw error;
       }
 
-      // Verificar si hay suficiente stock disponible
       if (product.stock < item.quantity) {
-        productsFailed.push(item.product); // Agregar el ID del producto que no se pudo comprar
+        productsFailed.push(item._id);
       } else {
+        const updatedStock = product.stock - item.quantity;
+        await productService.updateStock(product._id, updatedStock);
+
         productsWithDetails.push({
           price: product.price,
-          stock: product.stock,
-          quantity: item.quantity
+          stock: updatedStock,
+          quantity: item.quantity,
         });
       }
     }
 
-    // Calcular el total de la compra con los detalles completos de los productos
     const totalAmount = calculateTotalAmount(productsWithDetails);
 
-    // Crear un ticket de compra solo si se pudieron comprar todos los productos
     if (productsFailed.length === 0) {
       const ticket = await ticketService.save({
         code: generateTicketCode(),
         purchase_datetime: new Date(),
         amount: totalAmount,
-        purchaser: req.user.email,
-        products: cart.products
+        purchaser: user.email,
+        products: cart,
       });
-      
-      // Eliminar el carrito después de completar la compra
-      await cartService.delete(cartId);
 
-      res.status(200).json({ message: "Compra realizada con éxito.", ticket: ticket });
-      req.logger.info(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Compra realizada con éxito.`);
+      const updatedCart = await cartService.update(cartId, { products: [] });
+
+      if (!updatedCart) {
+        const error = new Error("Error al vaciar el carrito");
+        error.status = 500;
+        throw error;
+      }
+
+      await sendPurchaseSuccessEmail(user.email, ticket);
+
+      req.logger.info(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Compra realizada con éxito.`
+      );
+
+      return ticket;
     } else {
-      // Actualizar el carrito para contener solo los productos que no se pudieron comprar
-      cart.products = cart.products.filter(item => productsFailed.includes(item.product));
-      await cartService.update(cartId, cart);
+      cart.products = cart.products.filter((item) =>
+        productsFailed.includes(item.product)
+      );
 
-      res.status(400).json({ error: "Algunos productos no están disponibles.", productsFailed });
-      req.logger.warn(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Algunos productos no están disponibles.`);
+      const updatedCart = await cartService.update(cartId, {
+        products: cart.products,
+      });
+
+      if (!updatedCart) {
+        const error = new Error("Error al actualizar el carrito");
+        error.status = 500;
+        throw error;
+      }
+
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Algunos productos no están disponibles.`
+      );
+
+      if (productsFailed.length > 0) {
+        const error = new Error("Algunos productos no están disponibles.");
+        error.status = 404;
+        error.productsFailed = productsFailed;
+        throw error;
+      }
     }
   } catch (error) {
-    req.logger.error(`[${new Date().toLocaleString()}] [POST] ${req.originalUrl} - Error al realizar la compra:`, error);
-    res.status(500).json({ error: "Error interno del servidor." });
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error al realizar la compra:`,
+      error
+    );
+
+    throw error;
   }
 };
-

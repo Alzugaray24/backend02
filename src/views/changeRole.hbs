@@ -1,0 +1,26 @@
+<div class="user-list">
+  <h1>Lista de Usuarios</h1>
+</div>
+<table class="user-table">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Correo Electrónico</th>
+      <th>Rol</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each users}}
+      <tr>
+        <td>{{this.firstName}} {{this.lastName}}</td>
+        <td>{{this.email}}</td>
+        <td>{{this.role}}</td>
+        <td>
+          <button class="change-role-btn" data-_id="{{this.id}}">Cambiar Rol</button>
+          <button class="delete-user-btn" data-_id="{{this.id}}">Borrar Usuario</button>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-const collection = "users";
-
 const userSchema = new mongoose.Schema({
   first_name: String,
   last_name: String,
@@ -17,8 +15,15 @@ const userSchema = new mongoose.Schema({
     default: "user",
     enum: ["user", "admin", "premium"],
   },
+  cart: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Cart",
+    },
+  ],
+  lastLogin: { type: Date, default: Date.now },
 });
 
-const userModel = mongoose.model(collection, userSchema);
+const userModel = mongoose.model("User", userSchema);
 
 export { userModel };

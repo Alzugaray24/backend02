@@ -1,16 +1,20 @@
 import { productModel } from "./models/product.js";
+import mongoose from "mongoose";
 
 export default class ProductServiceMongo {
-  constructor() {
-    console.log("Working with Products using Database persistence in MongoDB");
-  }
+  constructor() {}
 
   getAll = async (options) => {
     try {
-      // Desestructuramos las propiedades del objeto options
-      const { limit = 10, page = 1, category, availability, sort, query } = options || {};
+      const {
+        limit = 10,
+        page = 1,
+        category,
+        availability,
+        sort,
+        query,
+      } = options || {};
 
-      // Construimos el filtro en base a las propiedades proporcionadas
       const filter = {};
       if (category) {
         filter.category = category;
@@ -22,7 +26,6 @@ export default class ProductServiceMongo {
         filter.title = { $regex: query, $options: "i" };
       }
 
-      // Realizamos la consulta a la base de datos
       const result = await productModel
         .find(filter)
         .sort({ price: sort === "asc" ? 1 : -1 })
@@ -30,10 +33,8 @@ export default class ProductServiceMongo {
         .skip((page - 1) * limit)
         .lean();
 
-      // Contamos el total de elementos que coinciden con el filtro
       const totalItems = await productModel.countDocuments(filter);
 
-      // Retornamos los resultados
       return {
         items: result,
         totalItems,
@@ -52,35 +53,67 @@ export default class ProductServiceMongo {
   findById = async (id) => {
     const result = await productModel.findById(id);
     return result;
-};
+  };
 
+  update = async (filter, value) => {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(filter)) {
+        return 0;
+      }
 
-update = async (filter, value) => {
-  try {
-    // Verificar si el filtro es un ObjectId y, si es así, convertirlo a un objeto filtro
-    if (typeof filter === 'string') {
-      filter = { _id: filter };
+      if (typeof filter === "string") {
+        filter = { _id: filter };
+      }
+
+      const updatedDocument = await productModel.findOneAndUpdate(
+        filter,
+        value,
+        { new: true }
+      );
+
+      return updatedDocument || null;
+    } catch (error) {
+      console.error("Error en update:", error);
+      throw error;
     }
-
-    // Realizar la actualización en la base de datos y obtener el documento actualizado
-    const updatedDocument = await productModel.findOneAndUpdate(filter, value, { new: true });
-
-    // Verificar si se encontró y se actualizó correctamente el documento
-    if (!updatedDocument) {
-      throw new Error("Documento no encontrado para actualizar.");
-    }
-
-    // Retornar el documento actualizado
-    return updatedDocument;
-  } catch (error) {
-    console.error("Error en update:", error);
-    throw error;
-  }
-};
-
+  };
 
   delete = async (id) => {
-    const result = await productModel.deleteOne({ id: id });
-    return result;
+    const result = await productModel.deleteOne({ _id: id });
+    if (result.deletedCount === 1) {
+      return id;
+    } else {
+      return null;
+    }
+  };
+
+  async isCodeUnique(code) {
+    try {
+      const existingProduct = await productModel.findOne({ code });
+      return !existingProduct;
+    } catch (error) {
+      console.error("Error al verificar la unicidad del código:", error);
+      throw new Error(
+        "Error al verificar la unicidad del código del producto."
+      );
+    }
+  }
+
+  updateStock = async (productId, newStock) => {
+    try {
+      const product = await productModel.findById(productId);
+
+      if (!product) {
+        throw new Error("Producto no encontrado");
+      }
+
+      product.stock = newStock;
+
+      const updatedProduct = await product.save();
+
+      return updatedProduct;
+    } catch (error) {
+      throw error;
+    }
   };
 }
