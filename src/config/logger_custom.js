@@ -20,9 +20,7 @@ const customLevelsOptions = {
   },
 };
 
-// Logger en env desarrollo
 const prodLogger = winston.createLogger({
-  // Declaramos el trasnport
   levels: customLevelsOptions.levels,
   transports: [
     new winston.transports.Console({
@@ -34,26 +32,23 @@ const prodLogger = winston.createLogger({
     }),
     new winston.transports.File({
       filename: "./errors.log",
-      level: "error", //Cambiamos el logger level name.
+      level: "error",
       format: winston.format.simple(),
     }),
   ],
 });
 
-// Logger en env prod
 const devLogger = winston.createLogger({
-  // Declaramos el trasnport
   levels: customLevelsOptions.levels,
   transports: [new winston.transports.Console({ level: "debug" })],
 });
 
-// Declaramos a middleware
 export const addLogger = (req, res, next) => {
   if (config.environment === "prod") {
-    req.logger = prodLogger
-  }else{
-    req.logger = devLogger
+    req.logger = prodLogger;
+  } else {
+    req.logger = devLogger;
   }
-    
+
   next();
 };

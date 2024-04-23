@@ -11,8 +11,6 @@ export default class CartDTO {
   static async validateForCreate(cartData) {
     const errors = [];
 
-    // Aquí puedes realizar validaciones específicas para la creación del carrito si es necesario
-
     return errors;
   }
 }

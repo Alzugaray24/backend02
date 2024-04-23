@@ -9,18 +9,14 @@ export default class CartServiceMongo {
 
   getAll = async (user) => {
     try {
-      // Verifica si el usuario tiene un carrito asociado
       if (!user.cart || user.cart.length === 0) {
-        return null; // Retorna null si el usuario no tiene carrito
+        return null;
       }
 
-      // Obtiene el ID del carrito asociado al usuario
-      const cartId = user.cart[0]; // Suponiendo que solo hay un carrito por usuario
+      const cartId = user.cart[0];
 
-      // Busca el carrito por su ID
       const cart = await cartModel.findById(cartId).lean();
 
-      // Obtener los ids de los productos en una nueva constante
       const cartProducts = await Promise.all(
         cart.products.map(async (product) => {
           const productData = await productModel.findById(product._id);
@@ -28,7 +24,6 @@ export default class CartServiceMongo {
         })
       );
 
-      // Reemplazar los productos con sus datos completos y cantidad
       cart.products = cartProducts;
 
       return cart;
@@ -41,7 +36,6 @@ export default class CartServiceMongo {
   createEmptyCart = async () => {
     try {
       console.log("hola desde funcion");
-      // Crea un nuevo carrito vacío en la base de datos
       const newCart = await cartModel.create({
         user: new mongoose.Types.ObjectId(),
         products: [],
@@ -73,11 +67,9 @@ export default class CartServiceMongo {
 
   create = async (userId) => {
     try {
-      // Crea un nuevo carrito con el ID del usuario proporcionado
       const newCart = await cartModel.create({ user: userId, products: [] });
       return newCart;
     } catch (error) {
-      // Si ocurre un error, lógalo y lanza una excepción
       console.error("Error in create:", error);
       throw error;
     }
@@ -87,13 +79,12 @@ export default class CartServiceMongo {
     try {
       console.log(cartId);
       console.log(updatedCart);
-      // Usamos el método findByIdAndUpdate de Mongoose para actualizar el carrito por su ID
       const result = await cartModel.findByIdAndUpdate(cartId, updatedCart, {
         new: true,
       });
       console.log("result: ");
       console.log(result);
-      return result; // Retornamos el carrito actualizado
+      return result;
     } catch (error) {
       console.error("Error en update:", error);
       throw error;
@@ -102,11 +93,9 @@ export default class CartServiceMongo {
 
   findByUserId = async (userId) => {
     try {
-      // Busca el carrito por el ID del usuario en la base de datos
       const cart = await cartModel.findOne({ user: userId }).lean();
       return cart;
     } catch (error) {
-      // Si ocurre un error, lógalo y lanza una excepción
       console.error("Error in findByUserId:", error);
       throw error;
     }
@@ -119,11 +108,9 @@ export default class CartServiceMongo {
 
   getCartById = async (id) => {
     try {
-      // Busca el carrito por su ID en la base de datos
       const cart = await cartModel.findById(id).lean();
       return cart;
     } catch (error) {
-      // Si ocurre un error, lógalo y lanza una excepción
       console.error("Error in getCartById:", error);
       throw error;
     }

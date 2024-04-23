@@ -2,40 +2,28 @@ import { userService } from "../services/service.js";
 import { generateJWToken } from "../dirname.js";
 import { createHash, isValidPassword } from "../dirname.js";
 import UsersDTO from "../services/dto/users.dto.js";
-import EErrors from "../services/errors-enum.js";
-import { generateUserErrorInfo } from "../services/messages/user-creation-error.message.js";
-import CustomError from "../services/CustomError.js";
 import { cartService } from "../services/service.js";
 import moment from "moment";
-import {
-  sendDeleteAccountEmail,
-  sendPurchaseSuccessEmail,
-} from "../dirname.js";
+import { sendDeleteAccountEmail } from "../dirname.js";
 
 export const getAllUsersController = async (req, res) => {
   try {
-    // Obtener todos los usuarios
     const users = await userService.getAll();
 
-    // Verificar si se obtuvieron usuarios
     if (!users || !users.items || users.items.length === 0) {
       return res.status(404).json({ error: "No se encontraron usuarios." });
     }
 
-    // Convertir la información de los usuarios
     const infoUsers = UsersDTO.infoUser(users.items);
 
-    // Enviar la respuesta con los usuarios
     return infoUsers;
   } catch (error) {
-    // Registrar el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [GET] ${
         req.originalUrl
       } - Error al obtener los usuarios:`,
       error
     );
-    // Enviar una respuesta de error
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -44,32 +32,26 @@ export const registerUserController = async (req, res) => {
   try {
     const { first_name, last_name, email, age, password } = req.body;
 
-    // Verificar que los campos requeridos no estén vacíos
     if (!first_name || !last_name || !email || !age || !password) {
       throw new Error("Todos los campos son obligatorios.");
     }
 
-    // Verificar si el email ya está en uso
     const existingUser = await userService.findByEmail(email);
     if (existingUser) {
       throw new Error("El correo electrónico ya está en uso.");
     }
 
-    // Verificar si el email es válido
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       throw new Error("Formato de correo electrónico inválido.");
     }
 
-    // Verificar si la edad es un número válido
     if (isNaN(age) || age < 0 || age > 150) {
       throw new Error("La edad debe ser un número válido.");
     }
 
-    // Hash de la contraseña
     const hashedPassword = createHash(password);
 
-    // Guardar el usuario y crear un carrito vacío asociado
     const newUser = await userService.save({
       first_name,
       last_name,
@@ -80,10 +62,8 @@ export const registerUserController = async (req, res) => {
 
     const newCart = await cartService.createEmptyCart(newUser._id);
 
-    // Asignar el ID del carrito al array de carritos del usuario
     newUser.cart.push(newCart._id);
 
-    // Guardar el usuario actualizado
     await newUser.save();
 
     req.logger.info(
@@ -98,7 +78,6 @@ export const registerUserController = async (req, res) => {
       usuario: newUser,
     });
   } catch (error) {
-    // Manejar el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
@@ -288,10 +267,8 @@ export const githubCallbackController = async (req, res) => {
 
 export const deleteUserInactiveController = async (req, res) => {
   try {
-    // Calcula la fecha límite para la inactividad (hace 2 días)
     const cutoffDate = moment().subtract(30, "seconds").toDate();
 
-    // Envía correos electrónicos a los usuarios cuyas cuentas han sido eliminadas
     const deletedUsersEmails = await userService.getInactiveUsersEmails(
       cutoffDate
     );
@@ -300,7 +277,6 @@ export const deleteUserInactiveController = async (req, res) => {
       await sendDeleteAccountEmail(email);
     }
 
-    // Encuentra y elimina los usuarios inactivos
     const deletedUsers = await userService.deleteInactiveUsers(cutoffDate);
 
     res.status(200).json({ message: `${deletedUsers} usuarios eliminados.` });

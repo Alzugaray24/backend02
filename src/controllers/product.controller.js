@@ -67,17 +67,14 @@ export const putProductController = async (req, res) => {
     const { id } = req.params;
     const newProduct = req.body;
 
-    // Validar el nuevo producto utilizando el DTO
     const validationErrors = ProductDTO.validateForUpdate(newProduct);
     if (validationErrors.length > 0) {
       console.log("Errores de validación:", validationErrors);
       return res.status(400).json({ errors: validationErrors });
     }
 
-    // Actualizar el producto en la base de datos
     const updatedProduct = await productService.update(id, newProduct);
 
-    // Verificar si el producto se actualizó correctamente
     if (!updatedProduct) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [PUT] ${
@@ -96,7 +93,7 @@ export const putProductController = async (req, res) => {
         req.originalUrl
       } - Producto actualizado con éxito`
     );
-    res.status(200).json({ status: "success", updatedProduct }); // Enviar la respuesta con el producto actualizado
+    res.status(200).json({ status: "success", updatedProduct });
   } catch (error) {
     console.error("Error al actualizar el producto:", error);
     req.logger.error(
@@ -113,21 +110,15 @@ export const deleteProductController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener todos los usuarios
     const users = await userService.getAll();
 
-    // Filtrar solo los usuarios premium
     const usersPremium = users.items.filter(
       (user) => user.role === "user_premium"
     );
 
-    // Iterar sobre cada usuario premium
     for (const user of usersPremium) {
-      // Iterar sobre cada carrito del usuario premium
       for (const cartId of user.cart) {
-        // Obtener el carrito por su ID
         const cart = await cartService.findById(cartId);
-        // Iterar sobre cada producto en el carrito
         for (const prod of cart.products) {
           if (prod._id.toString() === id) {
             await sendDeletedProdEmail(user.email);
@@ -139,10 +130,8 @@ export const deleteProductController = async (req, res) => {
       }
     }
 
-    // Eliminar el producto y obtener su _id
     const deletedProductId = await productService.delete(id);
 
-    // Verificar si el producto se eliminó correctamente
     if (!deletedProductId) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [DELETE] ${
@@ -154,7 +143,6 @@ export const deleteProductController = async (req, res) => {
         .json({ error: "Producto no encontrado para eliminar" });
     }
 
-    // Actualizar los carritos de usuarios que contienen el producto eliminado
     for (const user of users.items) {
       for (const cartId of user.cart) {
         const cart = await cartService.findById(cartId);
@@ -172,7 +160,6 @@ export const deleteProductController = async (req, res) => {
       }
     }
 
-    // Responder con éxito
     res
       .status(201)
       .json({ status: "success", deleted: `Producto eliminado exitosamente` });

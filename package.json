@@ -6,8 +6,6 @@
   "type": "module",
   "scripts": {
     "start": "nodemon src/app.js",
-    "dev": "nodemon src/app.js --mode dev",
-    "prod": "nodemon src/app.js --mode prod",
     "test": "nodemon src/app.js --mode test"
   },
   "keywords": [],

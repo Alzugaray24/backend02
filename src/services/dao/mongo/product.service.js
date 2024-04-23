@@ -81,9 +81,9 @@ export default class ProductServiceMongo {
   delete = async (id) => {
     const result = await productModel.deleteOne({ _id: id });
     if (result.deletedCount === 1) {
-      return id; // Devolver el _id del producto eliminado si la eliminación fue exitosa
+      return id;
     } else {
-      return null; // Devolver null si no se eliminó ningún producto
+      return null;
     }
   };
 
@@ -101,18 +101,14 @@ export default class ProductServiceMongo {
 
   updateStock = async (productId, newStock) => {
     try {
-      // Buscar el producto por su ID
       const product = await productModel.findById(productId);
 
-      // Verificar si el producto existe
       if (!product) {
         throw new Error("Producto no encontrado");
       }
 
-      // Actualizar el stock del producto
       product.stock = newStock;
 
-      // Guardar los cambios en la base de datos
       const updatedProduct = await product.save();
 
       return updatedProduct;

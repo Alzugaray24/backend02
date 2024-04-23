@@ -2,15 +2,14 @@ import passport from "passport";
 import passportLocal from "passport-local";
 import { createHash, isValidPassword } from "../dirname.js";
 import GitHubStrategy from "passport-github2";
-import jwtStrategy from 'passport-jwt';
-import { PRIVATE_KEY } from '../dirname.js';
+import jwtStrategy from "passport-jwt";
+import { PRIVATE_KEY } from "../dirname.js";
 
 const localStrategy = passportLocal.Strategy;
 const JwtStrategy = jwtStrategy.Strategy;
 const ExtractJWT = jwtStrategy.ExtractJwt;
 
 const initializePassport = () => {
-
   passport.use(
     "jwt",
     new JwtStrategy(
@@ -18,7 +17,7 @@ const initializePassport = () => {
         jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
         secretOrKey: PRIVATE_KEY,
       },
-      async (jwt_payload, done) => {;
+      async (jwt_payload, done) => {
         try {
           return done(null, jwt_payload.user);
         } catch (error) {
@@ -118,17 +117,17 @@ const initializePassport = () => {
       let user = await userModel.findById(id);
       done(null, user);
     } catch (error) {
-      console.error("Error deserializando el usuario: " + error);
+      throw error;
     }
   });
 };
 
-const cookieExtractor = req => {
-    let token = null;
-    if (req && req.cookies) {
-        token = req.cookies['jwtCookieToken']
-    }
-    return token;
+const cookieExtractor = (req) => {
+  let token = null;
+  if (req && req.cookies) {
+    token = req.cookies["jwtCookieToken"];
+  }
+  return token;
 };
 
 export default initializePassport;

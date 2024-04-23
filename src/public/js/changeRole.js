@@ -3,11 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   deleteUserBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
-      // Obtener el ID del usuario del atributo data-_id
       const userId = btn.getAttribute("data-_id");
       console.log(userId);
 
-      // Enviar una solicitud al backend para eliminar el usuario con el ID correspondiente
       fetch(`/api/extend/users/delete/${userId}`, {
         method: "DELETE",
       })
@@ -15,12 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) {
             throw new Error("No se pudo eliminar el usuario");
           }
-          // Opcional: Recargar la página o actualizar la lista de usuarios después de eliminar
-          location.reload(); // Recargar la página
+          location.reload();
         })
         .catch(function (error) {
           console.error("Error al eliminar el usuario:", error);
-          // Manejar el error adecuadamente, por ejemplo, mostrar un mensaje de error al usuario
         });
     });
   });
@@ -34,10 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const userId = button.getAttribute("data-_id");
       let newRole = prompt("Ingrese el nuevo rol del usuario:");
 
-      // Convertir el nuevo rol a minúsculas
       newRole = newRole.toLowerCase();
 
-      // Validar que el nuevo rol sea uno de los valores permitidos
       const allowedRoles = ["user", "user_premium", "admin"];
       if (!allowedRoles.includes(newRole)) {
         alert("El rol ingresado no es válido.");
@@ -68,8 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       alert("Rol del usuario cambiado con éxito.");
 
-      location.reload(); // Recargar la página
-      // Aquí podrías agregar lógica adicional, como recargar la página o actualizar la lista de usuarios.
+      location.reload();
     } catch (error) {
       console.error("Error:", error);
       alert("Ha ocurrido un error al cambiar el rol del usuario.");

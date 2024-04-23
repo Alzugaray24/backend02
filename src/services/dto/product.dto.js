@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 export default class ProductDTO {
   constructor(product) {
-    this.id = product._id; // Suponiendo que `_id` es el campo de identificación del producto en MongoDB
+    this.id = product._id;
     this.title = product.title;
     this.description = product.description;
     this.price = product.price;
@@ -56,7 +56,6 @@ export default class ProductDTO {
   }
 
   static validateForRead() {
-    // Puedes añadir validaciones específicas para la operación de lectura aquí si es necesario.
     return [];
   }
 

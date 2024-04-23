@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (response.ok) {
         console.log("Registro exitoso");
-        window.location.href = "/login"; // Redirigir a una página de éxito
+        window.location.href = "/login";
       } else {
         const responseData = await response.json();
         console.error(responseData.error);

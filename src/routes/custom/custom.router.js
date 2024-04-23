@@ -14,7 +14,7 @@ export default class CustomRouter {
   }
   init() {
     this.router.use(errorHandler);
-  } //Esta inicialilzacion se usa para las clases heredadas.
+  }
 
   get(path, policies, ...callbacks) {
     this.router.get(
@@ -25,7 +25,6 @@ export default class CustomRouter {
     );
   }
 
-  // POST
   post(path, policies, ...callbacks) {
     this.router.post(
       path,
@@ -35,7 +34,6 @@ export default class CustomRouter {
     );
   }
 
-  // PUT
   put(path, policies, ...callbacks) {
     this.router.put(
       path,
@@ -45,7 +43,6 @@ export default class CustomRouter {
     );
   }
 
-  // DELETE
   delete(path, policies, ...callbacks) {
     this.router.delete(
       path,
@@ -56,13 +53,9 @@ export default class CustomRouter {
   }
 
   handlePolicies = (policies) => (req, res, next) => {
-    // Validar si tiene acceso público:
     if (policies[0] === "PUBLIC") return next();
 
-    // Obtener el token de la cookie
     const token = req.cookies.token;
-
-    // const token = req.headers.authorization;
 
     if (!token) {
       return res
@@ -70,21 +63,17 @@ export default class CustomRouter {
         .send({ error: "User not authenticated or missing token." });
     }
 
-    // Validar el token
     jwt.verify(token, PRIVATE_KEY, (error, credential) => {
       if (error)
         return res.status(403).send({ error: "Token invalid, Unauthorized!" });
 
-      // Token válido
       const user = credential.user;
 
-      // Verificar si el rol del usuario tiene acceso según las políticas
       if (!policies.includes(user.role.toUpperCase()))
         return res.status(403).send({
           error: "El usuario no tiene privilegios, revisa tus roles!",
         });
 
-      // Si el rol del usuario tiene acceso, continuar
       req.user = user;
 
       next();
@@ -92,7 +81,6 @@ export default class CustomRouter {
   };
 
   generateCustomResponses = (req, res, next) => {
-    //Custom responses
     res.sendSuccess = (payload) =>
       res.status(200).send({ status: "Success", payload });
     res.sendInternalServerError = (error) =>
@@ -113,15 +101,12 @@ export default class CustomRouter {
     next();
   };
 
-  // función que procese todas las funciones internas del router (middlewares y el callback principal)
-  // Se explica en el slice 28
   applyCallbacks(callbacks) {
     return callbacks.map((callback) => async (...item) => {
       try {
         await callback.apply(this, item);
       } catch (error) {
         console.error(error);
-        // params[1] hace referencia al res
         item[1].status(500).send(error);
       }
     });

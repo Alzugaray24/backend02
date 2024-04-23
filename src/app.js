@@ -1,4 +1,3 @@
-// app.js
 import express from "express";
 import handlebars from "express-handlebars";
 import __dirname from "./dirname.js";
@@ -22,8 +21,6 @@ import Handlebars from "handlebars";
 import { allowInsecurePrototypeAccess } from "@handlebars/allow-prototype-access";
 
 const app = express();
-
-// Configuracion de handlebars
 
 app.engine(
   "hbs",
@@ -64,8 +61,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.use(addLogger);
-
-// app.use("/", viewsRoutes);
 
 const usersExtendRouter = new UsersExtendRouter();
 const productExtendRouter = new ProductExtendRouter();
