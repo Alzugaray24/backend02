@@ -41,42 +41,35 @@ export const getAllUsersController = async (req, res) => {
 };
 
 export const registerUserController = async (req, res) => {
-  const { first_name, last_name, email, age, password } = req.body;
-
-  // Verificar que los campos requeridos no estén vacíos
-  if (!first_name || !last_name || !email || !age || !password) {
-    throw CustomError.createError({
-      name: "User Create Error",
-      cause: generateUserErrorInfo({ first_name, last_name, age, email }),
-      message: "Error tratando de crear al usuario",
-      code: EErrors.INVALID_TYPES_ERROR,
-    });
-  }
-
-  // Verificar si el email es válido
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    req.logger.error(
-      "[POST] /api/extend/users/register - Formato de correo electrónico inválido."
-    );
-    return res
-      .status(400)
-      .json({ error: "Formato de correo electrónico inválido." });
-  }
-
-  // Verificar si la edad es un número válido
-  if (isNaN(age) || age < 0 || age > 150) {
-    req.logger.error("[POST] /api/extend/users/register - Edad inválida.");
-    return res
-      .status(400)
-      .json({ error: "La edad debe ser un número válido." });
-  }
-
-  // Hash de la contraseña
-  const hashedPassword = createHash(password);
-
-  // Guardar el usuario y crear un carrito vacío asociado
   try {
+    const { first_name, last_name, email, age, password } = req.body;
+
+    // Verificar que los campos requeridos no estén vacíos
+    if (!first_name || !last_name || !email || !age || !password) {
+      throw new Error("Todos los campos son obligatorios.");
+    }
+
+    // Verificar si el email ya está en uso
+    const existingUser = await userService.findByEmail(email);
+    if (existingUser) {
+      throw new Error("El correo electrónico ya está en uso.");
+    }
+
+    // Verificar si el email es válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Formato de correo electrónico inválido.");
+    }
+
+    // Verificar si la edad es un número válido
+    if (isNaN(age) || age < 0 || age > 150) {
+      throw new Error("La edad debe ser un número válido.");
+    }
+
+    // Hash de la contraseña
+    const hashedPassword = createHash(password);
+
+    // Guardar el usuario y crear un carrito vacío asociado
     const newUser = await userService.save({
       first_name,
       last_name,
@@ -85,17 +78,7 @@ export const registerUserController = async (req, res) => {
       password: hashedPassword,
     });
 
-    // Agregar console.log para verificar el nuevo usuario
-    console.log("Nuevo usuario registrado:", newUser);
-
     const newCart = await cartService.createEmptyCart(newUser._id);
-
-    // Agregar console.log para verificar el nuevo carrito
-    console.log("Nuevo carrito creado:", newCart);
-
-    // Verificar el tipo y contenido del campo `cart` en el nuevo usuario
-    console.log("Tipo de 'cart' en el nuevo usuario:", typeof newUser.cart);
-    console.log("Contenido de 'cart' en el nuevo usuario:", newUser.cart);
 
     // Asignar el ID del carrito al array de carritos del usuario
     newUser.cart.push(newCart._id);
@@ -115,7 +98,7 @@ export const registerUserController = async (req, res) => {
       usuario: newUser,
     });
   } catch (error) {
-    // Si ocurre algún error durante la ejecución de userService.save()
+    // Manejar el error
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl

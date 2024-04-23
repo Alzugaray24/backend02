@@ -19,12 +19,18 @@ export default class ViewsExtendRouter extends CustomRouter {
     });
 
     this.get("/register", ["PUBLIC"], (req, res) => {
-      const cssFileName = "register.css";
-      const jsFileName = "register.js";
-      res.render("register", {
-        cssFileName: cssFileName,
-        jsFileName: jsFileName,
-      });
+      try {
+        const cssFileName = "register.css";
+        const jsFileName = "register.js";
+        res.render("register", {
+          cssFileName: cssFileName,
+          jsFileName: jsFileName,
+        });
+      } catch (error) {
+        // Manejar el error si la promesa es rechazada
+        console.error("Error al registrar el usuario:", error);
+        res.status(500).json({ error: "Error interno del servidor." });
+      }
     });
 
     this.get("/login", ["PUBLIC"], (req, res) => {

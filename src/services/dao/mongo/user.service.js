@@ -28,6 +28,19 @@ export default class UserServiceMongo {
     }
   };
 
+  findByEmail = async (email) => {
+    try {
+      // Buscar un usuario con el correo electrónico proporcionado
+      const user = await userModel.findOne({ email: email });
+
+      // Devolver el usuario encontrado (o null si no se encuentra)
+      return user;
+    } catch (error) {
+      // Manejar cualquier error que ocurra durante la búsqueda
+      throw new Error("Error al buscar el usuario por correo electrónico.");
+    }
+  };
+
   save = async (user) => {
     try {
       const result = await userModel.create(user);

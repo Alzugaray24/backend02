@@ -34,4 +34,8 @@ export default class UserRepository {
   getInactiveUsersEmails = async (cutoffDate) => {
     return this.dao.getInactiveUsersEmails(cutoffDate);
   };
+
+  findByEmail = async (email) => {
+    return this.dao.findByEmail(email);
+  };
 }
