@@ -339,7 +339,7 @@ export const deleteUserInactiveController = async (req, res) => {
       } Usuarios inactivos por 2 dias fueron eliminados con exito`
     );
 
-    res.status(200).json({ message: `${deletedUsers} usuarios eliminados.` });
+    res.status(200).json({ msg: deletedUsers });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [DELETE] ${

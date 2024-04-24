@@ -2,7 +2,6 @@ import express from "express";
 import handlebars from "express-handlebars";
 import __dirname from "./dirname.js";
 import cookieParser from "cookie-parser";
-import config from "./config/config.js";
 import MongoSingleton from "./config/mongodb-singleton.js";
 import cors from "cors";
 import swaggerJSDoc from "swagger-jsdoc";
