@@ -27,8 +27,6 @@ export default class ViewsExtendRouter extends CustomRouter {
           jsFileName: jsFileName,
         });
       } catch (error) {
-        // Manejar el error si la promesa es rechazada
-        console.error("Error al registrar el usuario:", error);
         res.status(500).json({ error: "Error interno del servidor." });
       }
     });
@@ -48,7 +46,6 @@ export default class ViewsExtendRouter extends CustomRouter {
         const jsFileName = "changeRole.js";
 
         const users = await getAllUsersController(req, res);
-        console.log(users);
 
         res.render("changeRole", {
           cssFileName: cssFileName,
@@ -56,7 +53,6 @@ export default class ViewsExtendRouter extends CustomRouter {
           users: users,
         });
       } catch (error) {
-        console.error("Error al obtener usuarios:", error);
         res.status(500).json({ error: "Error interno del servidor." });
       }
     });
@@ -68,7 +64,6 @@ export default class ViewsExtendRouter extends CustomRouter {
         const cssFileName = "products.css";
         const jsFileName = "products.js";
         const products = await getProductController(req, res);
-        console.log(products);
 
         res.render("products", {
           cssFileName: cssFileName,
@@ -85,16 +80,12 @@ export default class ViewsExtendRouter extends CustomRouter {
 
         const cart = await getCartController(req, res);
 
-        console.log(cart);
-
         const products = await Promise.all(
           cart.products.map(async (item) => {
             const product = await productService.findById(item.product._id);
             return { quantity: item.quantity, product };
           })
         );
-
-        console.log(products);
 
         res.render("cart", {
           cssFileName: cssFileName,
@@ -105,7 +96,7 @@ export default class ViewsExtendRouter extends CustomRouter {
         });
       } catch (error) {
         console.error("Error en la ruta /cart:", error);
-        res.status(200).render("cart", {
+        res.status(500).render("cart", {
           cssFileName: "error.css",
           jsFileName: "error.js",
           carts: null,
@@ -124,7 +115,6 @@ export default class ViewsExtendRouter extends CustomRouter {
           const jsFileName = "successPurchase.js";
 
           const data = await finalizePurchase(req, res);
-          console.log(data);
 
           res.render("successPurchase", {
             cssFileName: cssFileName,
@@ -132,11 +122,7 @@ export default class ViewsExtendRouter extends CustomRouter {
             data: data,
           });
         } catch (error) {
-          res.status(404).render("successPurchase", {
-            cssFileName: "error.css",
-            jsFileName: "error.js",
-            error,
-          });
+          throw error;
         }
       }
     );
@@ -147,7 +133,6 @@ export default class ViewsExtendRouter extends CustomRouter {
         const jsFileName = "modifyProducts.js";
 
         const products = await getProductController(req, res);
-        console.log(products);
 
         res.render("modifyProducts", {
           cssFileName: cssFileName,
@@ -155,7 +140,6 @@ export default class ViewsExtendRouter extends CustomRouter {
           products: products.items,
         });
       } catch (error) {
-        console.log("hubo un error");
         throw error;
       }
     });

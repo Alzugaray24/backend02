@@ -116,7 +116,6 @@ export const sendDeleteAccountEmail = async (email) => {
 
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error al enviar el correo electrónico:", error);
     throw error;
   }
 };
@@ -146,7 +145,6 @@ export const sendPurchaseSuccessEmail = async (email, ticket) => {
 
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error al enviar el correo electrónico:", error);
     throw error;
   }
 };
@@ -166,13 +164,11 @@ export const sendDeletedProdEmail = async (email) => {
       from: `Coder test ${config.emailNodemailer}`,
       to: email,
       subject: `Aviso de producto eliminado`,
-      text: `Un producto fue eliminado de tu carrito 
-      debido a que ya no existe`,
+      text: `Un producto fue eliminado de tu carrito debido a que ya no existe`,
     };
 
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error al enviar el mail sobre producto eliminado", error);
     throw error;
   }
 };

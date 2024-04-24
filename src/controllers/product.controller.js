@@ -8,7 +8,11 @@ export const getProductController = async (req, res) => {
     const validationErrors = ProductDTO.validateForRead();
 
     if (validationErrors.length > 0) {
-      console.log("Errores de validación:", validationErrors);
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } error al obtener los productos`
+      );
       return res.status(400).json({ errors: validationErrors });
     }
 
@@ -39,7 +43,11 @@ export const postProductController = async (req, res) => {
     const validationErrors = await ProductDTO.validateForCreate(productData);
 
     if (validationErrors.length > 0) {
-      console.log("Errores de validación:", validationErrors);
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } error al crear un producto`
+      );
       return res.status(400).json({ errors: validationErrors });
     }
 
@@ -49,16 +57,15 @@ export const postProductController = async (req, res) => {
         req.originalUrl
       } - Producto creado con éxito`
     );
-    res.status(201).json({ status: "success", payload: result });
+    return res.status(201).json({ status: "success", payload: result });
   } catch (error) {
-    console.log("Error al crear el producto:", error);
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
       } - Error al crear el producto:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
@@ -69,7 +76,11 @@ export const putProductController = async (req, res) => {
 
     const validationErrors = ProductDTO.validateForUpdate(newProduct);
     if (validationErrors.length > 0) {
-      console.log("Errores de validación:", validationErrors);
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } error al actualizar los productos`
+      );
       return res.status(400).json({ errors: validationErrors });
     }
 
@@ -86,23 +97,20 @@ export const putProductController = async (req, res) => {
         .json({ error: "Producto no encontrado para actualizar" });
     }
 
-    console.log("hola pedro");
-
     req.logger.info(
       `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
       } - Producto actualizado con éxito`
     );
-    res.status(200).json({ status: "success", updatedProduct });
+    return res.status(200).json({ status: "success", updatedProduct });
   } catch (error) {
-    console.error("Error al actualizar el producto:", error);
     req.logger.error(
       `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
       } - Error al actualizar el producto:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
@@ -160,7 +168,7 @@ export const deleteProductController = async (req, res) => {
       }
     }
 
-    res
+    return res
       .status(201)
       .json({ status: "success", deleted: `Producto eliminado exitosamente` });
   } catch (error) {
@@ -170,6 +178,6 @@ export const deleteProductController = async (req, res) => {
       } - Error al eliminar el producto:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };

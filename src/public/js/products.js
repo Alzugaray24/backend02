@@ -7,8 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const productId = form.dataset._id;
 
-      console.log(form.dataset);
-
       const productData = {
         productId: productId,
         quantity: 1,
@@ -23,14 +21,23 @@ document.addEventListener("DOMContentLoaded", function () {
           body: JSON.stringify(productData),
         });
 
-        if (!response.ok) {
-          throw new Error("Error al agregar producto al carrito");
+        if (response.ok) {
+          const data = await response.json();
+          Swal.fire({
+            icon: "success",
+            title: "Producto agregado al carrito",
+            text: `El producto se ha agregado correctamente al carrito!`,
+          });
+        } else {
+          const responseData = await response.json();
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: responseData.error,
+          });
         }
-
-        const data = await response.json();
-        console.log(data);
       } catch (error) {
-        console.error("Error al agregar producto al carrito:", error);
+        throw error;
       }
     });
   });

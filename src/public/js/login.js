@@ -22,7 +22,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        throw new Error("Error al iniciar sesión");
+        const errorData = await response.json();
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: errorData.error,
+        });
+        return; // Detener la ejecución aquí para evitar que el código restante se ejecute en caso de error
       }
 
       const data = await response.json();
@@ -30,9 +36,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.cookie = `token=${data.token}; path=/`;
 
-      window.location.href = "/";
+      Swal.fire({
+        icon: "success",
+        title: "Inicio de sesión exitoso",
+        text: "¡Te has conectado exitosamente!",
+      }).then(() => {
+        window.location.href = "/";
+      });
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
+      throw error;
     }
   });
 });

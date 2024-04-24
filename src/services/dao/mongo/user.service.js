@@ -2,9 +2,7 @@ import { userModel } from "./models/users.js";
 import { isValidPassword } from "../../../dirname.js";
 
 export default class UserServiceMongo {
-  constructor() {
-    console.log("Working with Users using Database persistence in MongoDB");
-  }
+  constructor() {}
 
   getAll = async (options) => {
     try {
@@ -23,7 +21,6 @@ export default class UserServiceMongo {
         totalItems,
       };
     } catch (error) {
-      console.error("Error in getAll:", error);
       throw error;
     }
   };
@@ -31,7 +28,6 @@ export default class UserServiceMongo {
   findByEmail = async (email) => {
     try {
       const user = await userModel.findOne({ email: email });
-
       return user;
     } catch (error) {
       throw new Error("Error al buscar el usuario por correo electrónico.");
@@ -43,7 +39,6 @@ export default class UserServiceMongo {
       const result = await userModel.create(user);
       return result;
     } catch (error) {
-      console.error("Error in save:", error);
       throw error;
     }
   };
@@ -53,7 +48,6 @@ export default class UserServiceMongo {
       const result = await userModel.findById(id);
       return result;
     } catch (error) {
-      console.error("Error in findById:", error);
       throw error;
     }
   };
@@ -69,7 +63,6 @@ export default class UserServiceMongo {
       );
       return updatedUser;
     } catch (error) {
-      console.error("Error in user update:", error);
       throw error;
     }
   };
@@ -79,7 +72,6 @@ export default class UserServiceMongo {
       const result = await userModel.deleteOne({ _id: id });
       return result;
     } catch (error) {
-      console.error("Error in delete:", error);
       throw error;
     }
   };
@@ -98,7 +90,6 @@ export default class UserServiceMongo {
 
       return user;
     } catch (error) {
-      console.error("Error in loginUser:", error);
       throw error;
     }
   };
@@ -108,38 +99,22 @@ export default class UserServiceMongo {
       const result = await userModel.deleteMany({
         lastLogin: { $lt: cutoffDate },
       });
-
-      console.log(result);
-      console.log("Aca");
-      console.log(result.deletedCount);
       return result.deletedCount;
     } catch (error) {
-      console.error("Error al eliminar usuarios inactivos:", error);
       throw error;
     }
   };
 
   getInactiveUsersEmails = async (cutoffDate) => {
     try {
-      console.log("entrando a getinactive");
       const inactiveUsers = await userModel.find({
         lastLogin: { $lt: cutoffDate },
       });
 
-      console.log("inactiveusers: ");
-      console.log(inactiveUsers);
-
       const inactiveUsersEmails = inactiveUsers.map((user) => user.email);
-
-      console.log("inactiveusersemails");
-      console.log(inactiveUsersEmails);
 
       return inactiveUsersEmails;
     } catch (error) {
-      console.error(
-        "Error al obtener los correos electrónicos de usuarios inactivos:",
-        error
-      );
       throw error;
     }
   };

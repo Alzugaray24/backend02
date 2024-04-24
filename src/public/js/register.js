@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
   const registerForm = document.getElementById("registerForm");
-  const errorContainer = document.getElementById("error-container");
 
   registerForm.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -29,15 +28,23 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (response.ok) {
-        console.log("Registro exitoso");
-        window.location.href = "/login";
+        Swal.fire({
+          icon: "success",
+          title: "Registro exitoso",
+          text: "¡Te has registrado con éxito!",
+        }).then(() => {
+          window.location.href = "/login";
+        });
       } else {
         const responseData = await response.json();
-        console.error(responseData.error);
-        errorContainer.textContent = responseData.error;
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: responseData.error,
+        });
       }
     } catch (error) {
-      console.error("Error al enviar los datos:", error);
+      throw error;
     }
   });
 });

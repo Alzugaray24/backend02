@@ -20,14 +20,29 @@ export const getCartController = async (req, res) => {
     if (!user) {
       const error = new Error("Usuario no encontrado.");
       error.status = 404;
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } - Usuario no encontrado al obtener el carrito.`
+      );
       throw error;
     }
     const cart = await cartService.getAll(user);
     if (!cart) {
       const error = new Error("No se encontró el carrito.");
       error.status = 404;
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } - Carrito no encontrado al obtener el carrito.`
+      );
       throw error;
     }
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Carrito obtenido exitosamente.`
+    );
     return cart;
   } catch (error) {
     req.logger.error(
@@ -47,6 +62,11 @@ export const postCartController = async (req, res) => {
     const { productId, quantity } = req.body;
     const user = await userService.findById(userId);
     if (!user) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Usuario no encontrado al agregar producto al carrito.`
+      );
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
     let cartId;
@@ -70,27 +90,48 @@ export const postCartController = async (req, res) => {
     }
     await cartService.update(cart._id, cart);
     await userService.update(userId, { cart: [cart._id] });
+    req.logger.info(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Producto agregado al carrito exitosamente.`
+    );
     return res.status(201).json({
       message: "Producto agregado al carrito exitosamente.",
       cart: cart,
     });
   } catch (error) {
-    console.error("Error al agregar producto al carrito:", error);
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [POST] ${
+        req.originalUrl
+      } - Error al agregar producto al carrito:`,
+      error
+    );
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const putCartController = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
     const { product, quantity } = req.body;
     const user = await userService.findById(userId);
     if (!user) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [PUT] ${
+          req.originalUrl
+        } - Usuario no encontrado al actualizar el carrito.`
+      );
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
     const cartId = user.cart[0];
     const cart = await cartService.findById(cartId);
     if (!cart) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [PUT] ${
+          req.originalUrl
+        } - Carrito no encontrado al actualizar el carrito.`
+      );
       return res.status(404).json({ error: "Carrito no encontrado." });
     }
     const existingProductIndex = cart.products.findIndex(
@@ -109,7 +150,7 @@ export const putCartController = async (req, res) => {
         req.originalUrl
       } - Carrito actualizado con éxito.`
     );
-    res.status(200).json({ status: "success", updatedCart: cart });
+    return res.status(200).json({ status: "success", updatedCart: cart });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [PUT] ${
@@ -117,19 +158,30 @@ export const putCartController = async (req, res) => {
       } - Error al actualizar el carrito:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
 export const deleteCartController = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const token = req.cookies.token;
+    const userId = getUserIdFromToken(token);
     const user = await userService.findById(userId);
     if (!user) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [DELETE] ${
+          req.originalUrl
+        } - Usuario no encontrado al eliminar el carrito.`
+      );
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
     const cartId = user.cart[0];
     if (!mongoose.Types.ObjectId.isValid(cartId)) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [DELETE] ${
+          req.originalUrl
+        } - ID de carrito inválido al eliminar el carrito.`
+      );
       return res.status(400).json({ error: "ID de carrito inválido." });
     }
     await cartService.delete(cartId);
@@ -138,7 +190,7 @@ export const deleteCartController = async (req, res) => {
         req.originalUrl
       } - Carrito eliminado con éxito.`
     );
-    res.json("Carrito eliminado con éxito");
+    return res.json("Carrito eliminado con éxito");
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [DELETE] ${
@@ -146,7 +198,7 @@ export const deleteCartController = async (req, res) => {
       } - Error al eliminar el carrito:`,
       error
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
 
@@ -157,18 +209,24 @@ export const finalizePurchase = async (req, res) => {
 
     const user = await userService.findById(userId);
     if (!user) {
-      const error = new Error("Usuario no encontrado.");
-      error.status = 404;
-      throw error;
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Usuario no encontrado al realizar la compra.`
+      );
+      return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
     const cartId = user.cart[0];
 
     const cart = await cartService.findById(cartId);
     if (!cart) {
-      const error = new Error("Carrito no encontrado.");
-      error.status = 404;
-      throw error;
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [POST] ${
+          req.originalUrl
+        } - Carrito no encontrado al realizar la compra.`
+      );
+      return res.status(404).json({ error: "Carrito no encontrado." });
     }
 
     const productsFailed = [];
@@ -177,9 +235,12 @@ export const finalizePurchase = async (req, res) => {
     for (const item of cart.products) {
       const product = await productService.findById(item._id);
       if (!product) {
-        const error = new Error("Producto no encontrado.");
-        error.status = 404;
-        throw error;
+        req.logger.error(
+          `[${new Date().toLocaleString()}] [POST] ${
+            req.originalUrl
+          } - Producto no encontrado al realizar la compra.`
+        );
+        return res.status(404).json({ error: "Producto no encontrado." });
       }
 
       if (product.stock < item.quantity) {
@@ -210,9 +271,12 @@ export const finalizePurchase = async (req, res) => {
       const updatedCart = await cartService.update(cartId, { products: [] });
 
       if (!updatedCart) {
-        const error = new Error("Error al vaciar el carrito");
-        error.status = 500;
-        throw error;
+        req.logger.error(
+          `[${new Date().toLocaleString()}] [POST] ${
+            req.originalUrl
+          } - Error al vaciar el carrito.`
+        );
+        return res.status(500).json({ error: "Error al vaciar el carrito" });
       }
 
       await sendPurchaseSuccessEmail(user.email, ticket);
@@ -234,9 +298,14 @@ export const finalizePurchase = async (req, res) => {
       });
 
       if (!updatedCart) {
-        const error = new Error("Error al actualizar el carrito");
-        error.status = 500;
-        throw error;
+        req.logger.error(
+          `[${new Date().toLocaleString()}] [POST] ${
+            req.originalUrl
+          } - Error al actualizar el carrito.`
+        );
+        return res
+          .status(500)
+          .json({ error: "Error al actualizar el carrito" });
       }
 
       req.logger.error(
@@ -246,10 +315,10 @@ export const finalizePurchase = async (req, res) => {
       );
 
       if (productsFailed.length > 0) {
-        const error = new Error("Algunos productos no están disponibles.");
-        error.status = 404;
-        error.productsFailed = productsFailed;
-        throw error;
+        return res.status(404).json({
+          error: "Algunos productos no están disponibles",
+          productsFailed,
+        });
       }
     }
   } catch (error) {
@@ -259,7 +328,6 @@ export const finalizePurchase = async (req, res) => {
       } - Error al realizar la compra:`,
       error
     );
-
-    throw error;
+    return res.status(500).json({ error: "Error interno del servidor" });
   }
 };

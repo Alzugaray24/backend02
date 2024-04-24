@@ -1,9 +1,7 @@
 import { ticketModel } from "./models/ticket.js";
 
 export default class TicketServiceMongo {
-  constructor() {
-    console.log("Working with Tickets using Database persistence in MongoDB");
-  }
+  constructor() {}
 
   getAll = async (options) => {
     try {
@@ -22,7 +20,6 @@ export default class TicketServiceMongo {
         totalItems,
       };
     } catch (error) {
-      console.error("Error in getAll:", error);
       throw error;
     }
   };
@@ -32,7 +29,6 @@ export default class TicketServiceMongo {
       const result = await ticketModel.create(ticket);
       return result;
     } catch (error) {
-      console.error("Error in save:", error);
       throw error;
     }
   };
@@ -42,7 +38,6 @@ export default class TicketServiceMongo {
       const result = await ticketModel.findById(id);
       return result;
     } catch (error) {
-      console.error("Error in findById:", error);
       throw error;
     }
   };
@@ -52,7 +47,6 @@ export default class TicketServiceMongo {
       const result = await ticketModel.updateOne(filter, updates);
       return result;
     } catch (error) {
-      console.error("Error in update:", error);
       throw error;
     }
   };
@@ -62,7 +56,6 @@ export default class TicketServiceMongo {
       const result = await ticketModel.deleteOne({ _id: id });
       return result;
     } catch (error) {
-      console.error("Error in delete:", error);
       throw error;
     }
   };

@@ -40,7 +40,6 @@ export default class ProductServiceMongo {
         totalItems,
       };
     } catch (error) {
-      console.error("Error en getAll:", error);
       throw error;
     }
   };
@@ -73,7 +72,6 @@ export default class ProductServiceMongo {
 
       return updatedDocument || null;
     } catch (error) {
-      console.error("Error en update:", error);
       throw error;
     }
   };
@@ -92,10 +90,7 @@ export default class ProductServiceMongo {
       const existingProduct = await productModel.findOne({ code });
       return !existingProduct;
     } catch (error) {
-      console.error("Error al verificar la unicidad del código:", error);
-      throw new Error(
-        "Error al verificar la unicidad del código del producto."
-      );
+      throw error;
     }
   }
 
