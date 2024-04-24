@@ -8,11 +8,14 @@ const mode = program.opts().mode;
 let envFilePath;
 
 switch (mode) {
+  case "start":
+    envFilePath = "./src/config/.env.production";
+    break;
   case "prod":
     envFilePath = "./src/config/.env.production";
     break;
-  default:
-    throw new Error("Invalid mode specified");
+  // default:
+  //   throw new Error("Invalid mode specified");
 }
 
 dotenv.config({ path: envFilePath });

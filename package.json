@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/app.js",
-    "prod": "nodemon src/app.js --mode prod"
+    "prod": "node src/app.js --mode prod"
   },
   "keywords": [],
   "author": "",

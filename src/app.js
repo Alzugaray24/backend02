@@ -1,4 +1,3 @@
-// app.js
 import express from "express";
 import handlebars from "express-handlebars";
 import __dirname from "./dirname.js";
@@ -58,9 +57,7 @@ app.use(passport.initialize());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(cors());
-
 app.use(addLogger);
 
 const usersExtendRouter = new UsersExtendRouter();
@@ -75,7 +72,7 @@ app.use("/api/extend/cart", cartExtendRouter.getRouter());
 
 app.use(errorHandler);
 
-const SERVER_PORT = process.env.PORT || config.port || 80;
+const SERVER_PORT = process.env.PORT_CODE || 80;
 
 app.listen(SERVER_PORT, console.log(`Server running on port ${SERVER_PORT}`));
 
@@ -83,7 +80,7 @@ const mongoInstance = async () => {
   try {
     await MongoSingleton.getInstance();
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 };
 mongoInstance();

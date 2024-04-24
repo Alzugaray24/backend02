@@ -102,15 +102,13 @@ export const sendDeleteAccountEmail = async (email) => {
       service: "gmail",
       port: 587,
       auth: {
-        user: process.env.EMAIL_NODEMAILER || config.emailNodemailer,
-        pass: process.env.PASSWORD_NODEMAILER || config.passNodemailer,
+        user: process.env.EMAIL_NODEMAILER,
+        pass: process.env.PASSWORD_NODEMAILER,
       },
     });
 
     const mailOptions = {
-      from: `Coder test ${
-        process.env.EMAIL_NODEMAILER || config.emailNodemailer
-      }`,
+      from: `Coder test ${process.env.EMAIL_NODEMAILER}`,
       to: email,
       subject: "Notificación de eliminación de cuenta",
       text: "Tu cuenta ha sido eliminada. Si tienes alguna pregunta, ponte en contacto con el soporte.",
@@ -128,15 +126,13 @@ export const sendPurchaseSuccessEmail = async (email, ticket) => {
       service: "gmail",
       port: 587,
       auth: {
-        user: process.env.EMAIL_NODEMAILER || config.emailNodemailer,
-        pass: process.env.PASSWORD_NODEMAILER || config.passNodemailer,
+        user: process.env.EMAIL_NODEMAILER,
+        pass: process.env.PASSWORD_NODEMAILER,
       },
     });
 
     const mailOptions = {
-      from: `Coder test ${
-        process.env.EMAIL_NODEMAILER || config.emailNodemailer
-      }`,
+      from: `Coder test ${process.env.EMAIL_NODEMAILER}`,
       to: email,
       subject: "Notificación de compra",
       text:
@@ -159,15 +155,13 @@ export const sendDeletedProdEmail = async (email) => {
       service: "gmail",
       port: 587,
       auth: {
-        user: process.env.EMAIL_NODEMAILER || config.emailNodemailer,
-        pass: process.env.PASSWORD_NODEMAILER || config.passNodemailer,
+        user: process.env.EMAIL_NODEMAILER,
+        pass: process.env.PASSWORD_NODEMAILER,
       },
     });
 
     const mailOptions = {
-      from: `Coder test ${
-        process.env.EMAIL_NODEMAILER || config.emailNodemailer
-      }`,
+      from: `Coder test ${process.env.EMAIL_NODEMAILER}`,
       to: email,
       subject: `Aviso de producto eliminado`,
       text: `Un producto fue eliminado de tu carrito debido a que ya no existe`,
