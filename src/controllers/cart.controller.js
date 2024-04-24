@@ -51,7 +51,7 @@ export const getCartController = async (req, res) => {
       } - Error al obtener el carrito:`,
       error
     );
-    throw error;
+    throw new Error("Error al obtener el carrito");
   }
 };
 
