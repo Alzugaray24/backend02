@@ -63,13 +63,20 @@ export default class ViewsExtendRouter extends CustomRouter {
       async (req, res) => {
         const cssFileName = "products.css";
         const jsFileName = "products.js";
-        const products = await getProductController(req, res);
 
-        res.render("products", {
-          cssFileName: cssFileName,
-          jsFileName: jsFileName,
-          products: products.items,
-        });
+        try {
+          const products = await getProductController(req, res);
+
+          res.render("products", {
+            cssFileName: cssFileName,
+            jsFileName: jsFileName,
+            products: products.items,
+          });
+        } catch (error) {
+          console.log("estoy aca");
+          // Manejar el error renderizando una página de error
+          res.status(500).render("error", { error: error.message });
+        }
       }
     );
 
