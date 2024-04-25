@@ -79,7 +79,7 @@ export const registerUserController = async (req, res) => {
         .json({ error: "Formato de correo electrónico inválido." });
     }
 
-    if (isNaN(age) || age < 0 || age > 150) {
+    if (isNaN(age) || age < 1 || age > 150) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [POST] ${
           req.originalUrl

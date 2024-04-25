@@ -1,1 +1,4 @@
 error: [4/24/2024, 8:12:09 PM] [POST] /api/extend/cart - Usuario no encontrado al agregar producto al carrito.
+error: [4/25/2024, 3:59:08 PM] [POST] /api/extend/users/register - El correo electrónico ya está en uso.
+error: [4/25/2024, 3:59:12 PM] [POST] /api/extend/users/register - La edad debe ser un número válido.
+error: [4/25/2024, 6:17:01 PM] [DELETE] /api/extend/users/login Correo electrónico o contraseña incorrectos.
