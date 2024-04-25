@@ -52,32 +52,52 @@ export default class CustomRouter {
     );
   }
 
-  handlePolicies = (policies) => (req, res, next) => {
-    if (policies[0] === "PUBLIC") return next();
+  handlePolicies = (policies) => async (req, res, next) => {
+    try {
+      if (policies[0] === "PUBLIC") return next();
 
-    const token = req.cookies.token;
+      const token = req.cookies.token;
 
-    if (!token) {
-      return res
-        .status(401)
-        .send({ error: "User not authenticated or missing token." });
+      if (!token) {
+        req.logger.info(
+          `[${new Date().toLocaleString()}] [handlePolicies] ${
+            req.originalUrl
+          } Usuario no autenticado o token inexistente`
+        );
+        throw new Error("Usuario no autenticado o token inexistente");
+      }
+
+      jwt.verify(token, PRIVATE_KEY, (error, credential) => {
+        if (error) {
+          req.logger.info(
+            `[${new Date().toLocaleString()}] [handlePolicies] ${
+              req.originalUrl
+            } El usuario no tiene privilegios, revisa tus roles!`
+          );
+          throw new Error("Token invalido, no tiene autorizacion");
+        }
+
+        const user = credential.user;
+
+        if (!policies.includes(user.role.toUpperCase())) {
+          req.logger.info(
+            `[${new Date().toLocaleString()}] [handlePolicies] ${
+              req.originalUrl
+            } El usuario no tiene privilegios, revisa tus roles!`
+          );
+          throw new Error("El usuario no tiene privilegios, revisa tus roles!");
+        }
+
+        req.user = user;
+
+        next();
+      });
+    } catch (error) {
+      res.status(403).render("error", {
+        error: error.message,
+        cssFileName: "error.css",
+      });
     }
-
-    jwt.verify(token, PRIVATE_KEY, (error, credential) => {
-      if (error)
-        return res.status(403).send({ error: "Token invalid, Unauthorized!" });
-
-      const user = credential.user;
-
-      if (!policies.includes(user.role.toUpperCase()))
-        return res.status(403).send({
-          error: "El usuario no tiene privilegios, revisa tus roles!",
-        });
-
-      req.user = user;
-
-      next();
-    });
   };
 
   generateCustomResponses = (req, res, next) => {
