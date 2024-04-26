@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const data = await response.json();
       console.log(data);
 
-      document.cookie = `token=${data.token}; path=/ SameSite=Strict`;
+      document.cookie = `token=${data.token}; path=/`;
 
       Swal.fire({
         icon: "success",
